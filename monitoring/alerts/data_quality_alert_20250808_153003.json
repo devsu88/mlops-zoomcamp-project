@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-08-08T15:30:03.544780",
+  "type": "data_quality",
+  "alerts": [
+    "\u26a0\ufe0f Score qualit\u00e0 dati basso: 0.00"
+  ],
+  "metrics": {
+    "timestamp": "2025-08-08T15:30:03.535704",
+    "data_quality_score": 0.0,
+    "issues": [
+      "Errore estrazione metriche: 'str' object has no attribute 'get'"
+    ],
+    "summary": {}
+  }
+}

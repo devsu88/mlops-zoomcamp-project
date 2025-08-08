@@ -1,0 +1,21 @@
+{
+  "search_name": "GridSearch",
+  "best_params": {
+    "C": 0.01,
+    "class_weight": null,
+    "max_iter": 1000,
+    "penalty": "l1",
+    "solver": "liblinear"
+  },
+  "cv_recall": 0.9529411764705882,
+  "cv_f1": 0.90014684760006,
+  "cv_accuracy": 0.9208791208791208,
+  "test_accuracy": 0.9736842105263158,
+  "test_precision": 0.9333333333333333,
+  "test_recall": 1.0,
+  "test_f1": 0.9655172413793104,
+  "test_roc_auc": 0.996031746031746,
+  "test_pr_auc": 0.9934275119491067,
+  "n_cv_splits": 5,
+  "n_iterations": 96
+}

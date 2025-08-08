@@ -1,0 +1,29 @@
+{
+  "deployment_info": {
+    "timestamp": "2025-08-06T10:21:59.744227",
+    "model_path": "results/models/best_model.joblib",
+    "model_type": "LogisticRegression",
+    "version": "1.0.0"
+  },
+  "performance_metrics": {
+    "recall": 0.9529411764705882,
+    "f1_score": 0.90014684760006,
+    "accuracy": 0.9208791208791208,
+    "roc_auc": 0.9813209494324046
+  },
+  "validation_summary": {
+    "cross_validation_folds": 5,
+    "bootstrap_samples": 1000,
+    "total_errors": 6,
+    "false_negatives": 1,
+    "false_positives": 5
+  },
+  "deployment_ready": true,
+  "recommendations": [
+    "Modello validato e pronto per deployment",
+    "Recall: 0.9529 - Priorit\u00e0 soddisfatta",
+    "F1-Score: 0.9001 - Performance eccellente",
+    "Nessun overfitting rilevato",
+    "Bassa varianza nelle metriche di validazione"
+  ]
+}

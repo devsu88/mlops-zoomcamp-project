@@ -1,0 +1,77 @@
+{
+  "timestamp": "2025-08-08T16:16:57.523490",
+  "type": "model_performance",
+  "alerts": [
+    "\u26a0\ufe0f Accuracy bassa: 0.71",
+    "\u26a0\ufe0f Recall bassa: 0.21",
+    "\u26a0\ufe0f F1-score basso: 0.35",
+    "\u26a0\ufe0f Drift recall_drift: -19.05% (peggioramento)",
+    "\u26a0\ufe0f Drift f1_drift: -15.69% (peggioramento)"
+  ],
+  "metrics": {
+    "timestamp": "2025-08-08T16:16:57.519930",
+    "reference_performance": {
+      "accuracy": 0.7252747252747253,
+      "precision": 1.0,
+      "recall": 0.2647058823529412,
+      "f1": 0.4186046511627907
+    },
+    "current_performance": {
+      "accuracy": 0.7105263157894737,
+      "precision": 1.0,
+      "recall": 0.21428571428571427,
+      "f1": 0.35294117647058826
+    },
+    "performance_drift": {
+      "accuracy_drift": -0.020334928229665056,
+      "precision_drift": 0.0,
+      "recall_drift": -0.19047619047619052,
+      "f1_drift": -0.1568627450980392
+    },
+    "summary": {
+      "total_samples": 0,
+      "positive_class_samples": 0,
+      "negative_class_samples": 0
+    },
+    "confusion_matrix": {
+      "reference": {},
+      "current": {}
+    },
+    "class_performance": {
+      "reference": {
+        "metrics": {
+          "0": {
+            "precision": 0.6951219512195121,
+            "recall": 1.0,
+            "f1": 0.8201438848920863,
+            "support": 285.0
+          },
+          "1": {
+            "precision": 1.0,
+            "recall": 0.2647058823529412,
+            "f1": 0.4186046511627907,
+            "support": 170.0
+          }
+        },
+        "roc_aucs": null
+      },
+      "current": {
+        "metrics": {
+          "0": {
+            "precision": 0.6857142857142857,
+            "recall": 1.0,
+            "f1": 0.8135593220338984,
+            "support": 72.0
+          },
+          "1": {
+            "precision": 1.0,
+            "recall": 0.21428571428571427,
+            "f1": 0.35294117647058826,
+            "support": 42.0
+          }
+        },
+        "roc_aucs": null
+      }
+    }
+  }
+}

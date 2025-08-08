@@ -1,0 +1,25 @@
+{
+  "model_name": "svm",
+  "cv_recall_mean": 0.9352941176470587,
+  "cv_recall_std": 0.043226289578526686,
+  "cv_f1_mean": 0.9490659823056662,
+  "cv_f1_std": 0.036079354490329896,
+  "cv_accuracy_mean": 0.9626373626373628,
+  "cv_accuracy_std": 0.026556144996911134,
+  "test_accuracy": 0.9736842105263158,
+  "test_precision": 1.0,
+  "test_recall": 0.9285714285714286,
+  "test_f1": 0.962962962962963,
+  "test_roc_auc": 0.9976851851851852,
+  "test_pr_auc": 0.9963194584182056,
+  "confusion_matrix": [
+    [
+      72,
+      0
+    ],
+    [
+      3,
+      39
+    ]
+  ]
+}

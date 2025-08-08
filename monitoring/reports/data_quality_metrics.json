@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-08-08T16:05:15.869275",
+  "data_quality_score": 1.0,
+  "issues": [],
+  "summary": {
+    "total_rows": 114,
+    "total_columns": 21,
+    "missing_values_pct": 0.0,
+    "duplicate_rows_pct": 0
+  }
+}

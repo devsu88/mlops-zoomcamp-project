@@ -1,0 +1,61 @@
+{
+  "top_5_coefficient_features": [
+    {
+      "feature": "concave points_worst",
+      "coefficient": 0.34996412272790645,
+      "abs_coefficient": 0.34996412272790645
+    },
+    {
+      "feature": "radius_worst",
+      "coefficient": 0.11861908954059851,
+      "abs_coefficient": 0.11861908954059851
+    },
+    {
+      "feature": "radius_mean",
+      "coefficient": 0.0,
+      "abs_coefficient": 0.0
+    },
+    {
+      "feature": "concavity_worst",
+      "coefficient": 0.0,
+      "abs_coefficient": 0.0
+    },
+    {
+      "feature": "perimeter_ratio",
+      "coefficient": 0.0,
+      "abs_coefficient": 0.0
+    }
+  ],
+  "top_5_permutation_features": [
+    {
+      "feature": "concave points_worst",
+      "permutation_importance": 0.4595238095238095,
+      "permutation_importance_std": 0.07682031335667468
+    },
+    {
+      "feature": "radius_worst",
+      "permutation_importance": 0.059523809523809514,
+      "permutation_importance_std": 0.038759096657380254
+    },
+    {
+      "feature": "radius_mean",
+      "permutation_importance": 0.0,
+      "permutation_importance_std": 0.0
+    },
+    {
+      "feature": "concavity_worst",
+      "permutation_importance": 0.0,
+      "permutation_importance_std": 0.0
+    },
+    {
+      "feature": "perimeter_ratio",
+      "permutation_importance": 0.0,
+      "permutation_importance_std": 0.0
+    }
+  ],
+  "most_important_feature": "concave points_worst",
+  "coefficient_importance_score": 0.34996412272790645,
+  "permutation_importance_score": 0.4595238095238095,
+  "total_features_analyzed": 20,
+  "ablation_study_features": 10
+}

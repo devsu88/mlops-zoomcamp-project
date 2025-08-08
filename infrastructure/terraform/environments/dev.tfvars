@@ -1,0 +1,5 @@
+project_id = "mlops-breast-cancer"
+region     = "europe-west1"
+environment = "dev"
+database_password = "mlflow_secure_password_123"
+prefect_database_password = "prefect_secure_password_123" 

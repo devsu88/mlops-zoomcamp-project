@@ -1,0 +1,29 @@
+output "mlflow_url" {
+  description = "MLflow tracking server URL"
+  value       = module.mlflow.tracking_uri
+}
+
+output "prefect_url" {
+  description = "Prefect server URL"
+  value       = module.prefect.server_url
+}
+
+output "api_url" {
+  description = "FastAPI deployment URL"
+  value       = module.deployment.api_url
+}
+
+output "monitoring_dashboard_url" {
+  description = "Evidently monitoring dashboard URL"
+  value       = module.monitoring.dashboard_url
+}
+
+output "storage_buckets" {
+  description = "Created storage buckets"
+  value       = module.storage.bucket_names
+}
+
+output "database_connection_name" {
+  description = "Cloud SQL connection name"
+  value       = module.database.connection_name
+}

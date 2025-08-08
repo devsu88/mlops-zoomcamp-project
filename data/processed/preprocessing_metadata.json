@@ -1,0 +1,39 @@
+{
+  "dataset_shape": 569,
+  "train_shape": [
+    455,
+    21
+  ],
+  "test_shape": [
+    114,
+    21
+  ],
+  "selected_features": [
+    "radius_mean",
+    "perimeter_mean",
+    "area_mean",
+    "compactness_mean",
+    "concavity_mean",
+    "concave points_mean",
+    "radius_se",
+    "radius_worst",
+    "perimeter_worst",
+    "area_worst",
+    "compactness_worst",
+    "concavity_worst",
+    "concave points_worst",
+    "mean_features_avg",
+    "mean_features_std",
+    "worst_features_avg",
+    "worst_features_max",
+    "radius_ratio",
+    "perimeter_ratio",
+    "area_ratio"
+  ],
+  "test_size": 0.2,
+  "random_state": 42,
+  "target_mapping": {
+    "B": 0,
+    "M": 1
+  }
+}

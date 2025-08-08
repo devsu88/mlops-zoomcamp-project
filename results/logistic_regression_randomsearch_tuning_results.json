@@ -1,0 +1,22 @@
+{
+  "search_name": "RandomSearch",
+  "best_params": {
+    "solver": "saga",
+    "penalty": "l1",
+    "max_iter": 2000,
+    "l1_ratio": 0.3,
+    "class_weight": "balanced",
+    "C": 0.23357214690901212
+  },
+  "cv_recall": 0.9411764705882353,
+  "cv_f1": 0.9434472603270556,
+  "cv_accuracy": 0.9582417582417582,
+  "test_accuracy": 0.9649122807017544,
+  "test_precision": 0.9523809523809523,
+  "test_recall": 0.9523809523809523,
+  "test_f1": 0.9523809523809523,
+  "test_roc_auc": 0.9986772486772486,
+  "test_pr_auc": 0.997810329205678,
+  "n_cv_splits": 5,
+  "n_iterations": 50
+}

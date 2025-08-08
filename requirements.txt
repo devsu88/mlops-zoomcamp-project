@@ -1,0 +1,51 @@
+# Core ML libraries
+scikit-learn==1.3.2
+pandas==2.1.4
+numpy==1.24.3
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# MLflow for experiment tracking
+mlflow==2.8.1
+
+# Prefect for workflow orchestration
+prefect==2.14.0
+griffe>=0.20.0
+
+# FastAPI for model deployment
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic>=1.10.0,<2.0.0
+httpx>=0.24.0,<0.25.0
+starlette>=0.27.0,<0.28.0
+
+# Evidently for monitoring
+evidently==0.4.0
+
+# Google Cloud
+google-cloud-storage==2.10.0
+google-cloud-logging==3.8.0
+psycopg2-binary==2.9.9
+
+# Development tools
+pytest==7.4.3
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+pre-commit==3.5.0
+isort==5.12.0
+
+# Jupyter for notebooks
+jupyter==1.0.0
+ipykernel==6.25.2
+
+# Additional utilities
+requests==2.31.0
+python-dotenv==1.0.0
+kaggle==1.7.4.5
+
+# Machine Learning preprocessing
+joblib==1.3.2
+
+# Advanced ML models
+xgboost==2.0.3

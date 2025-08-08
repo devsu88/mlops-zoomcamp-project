@@ -1,0 +1,149 @@
+{
+  "cross_validation": {
+    "folds": 5,
+    "results": {
+      "accuracy": {
+        "mean": 0.9208791208791208,
+        "std": 0.025441399786352164,
+        "min": 0.8901098901098901,
+        "max": 0.9560439560439561
+      },
+      "precision": {
+        "mean": 0.8530072582704161,
+        "std": 0.03409773708335154,
+        "min": 0.8157894736842105,
+        "max": 0.8947368421052632
+      },
+      "recall": {
+        "mean": 0.9529411764705882,
+        "std": 0.029994232432898744,
+        "min": 0.9117647058823529,
+        "max": 1.0
+      },
+      "f1": {
+        "mean": 0.90014684760006,
+        "std": 0.03171165509651669,
+        "min": 0.861111111111111,
+        "max": 0.9444444444444444
+      },
+      "roc_auc": {
+        "mean": 0.9813209494324046,
+        "std": 0.01506990657277346,
+        "min": 0.9602683178534571,
+        "max": 1.0
+      }
+    }
+  },
+  "bootstrap": {
+    "n_bootstrap": 1000,
+    "results": {
+      "accuracy": {
+        "mean": 0.9475877192982457,
+        "std": 0.021544643608228976,
+        "ci_95_lower": 0.9035087719298246,
+        "ci_95_upper": 0.9824561403508771,
+        "ci_99_lower": 0.8859649122807017,
+        "ci_99_upper": 0.9912280701754386
+      },
+      "precision": {
+        "mean": 0.8907937199704993,
+        "std": 0.04875939674265581,
+        "ci_95_lower": 0.78,
+        "ci_95_upper": 0.9777898550724637,
+        "ci_99_lower": 0.7608152173913044,
+        "ci_99_upper": 1.0
+      },
+      "recall": {
+        "mean": 0.9773022424759084,
+        "std": 0.02303680986667487,
+        "ci_95_lower": 0.9230769230769231,
+        "ci_95_upper": 1.0,
+        "ci_99_lower": 0.9,
+        "ci_99_upper": 1.0
+      },
+      "f1": {
+        "mean": 0.9312338251090919,
+        "std": 0.02939595873924266,
+        "ci_95_lower": 0.8674497991967872,
+        "ci_95_upper": 0.9803921568627451,
+        "ci_99_lower": 0.8408937346437347,
+        "ci_99_upper": 0.9900999711621646
+      },
+      "roc_auc": {
+        "mean": 0.992836556817145,
+        "std": 0.004614272531733172,
+        "ci_95_lower": 0.9815789551062654,
+        "ci_95_upper": 0.999375,
+        "ci_99_lower": 0.9745623063465806,
+        "ci_99_upper": 1.0
+      },
+      "pr_auc": {
+        "mean": 0.9880438262715708,
+        "std": 0.00795481918290534,
+        "ci_95_lower": 0.968916310655197,
+        "ci_95_upper": 0.9991054345572543,
+        "ci_99_lower": 0.9590620957272138,
+        "ci_99_upper": 1.0
+      }
+    }
+  },
+  "learning_curves": {
+    "final_train_score": 0.9529411764705882,
+    "final_val_score": 0.9529411764705882,
+    "overfitting_gap": 0.0
+  },
+  "validation_curves": {
+    "best_c_value": 0.01623776739188721,
+    "best_val_score": 0.9588235294117646
+  },
+  "error_analysis": {
+    "error_count": 6,
+    "false_positives": 5,
+    "false_negatives": 1,
+    "avg_error_confidence": 0.5158726508969768,
+    "error_features_mean": {
+      "radius_mean": 0.12883103622077516,
+      "perimeter_mean": 0.1415204596578139,
+      "area_mean": 0.006124873216659269,
+      "compactness_mean": 0.3986027951994602,
+      "concavity_mean": 0.11063904471301957,
+      "concave points_mean": 0.22796508574253707,
+      "radius_se": -0.22885668287023817,
+      "radius_worst": -0.0670352362855926,
+      "perimeter_worst": -0.035751001696045136,
+      "area_worst": -0.183774251383773,
+      "compactness_worst": 0.010136527426774492,
+      "concavity_worst": 0.031315368557094624,
+      "concave points_worst": 0.20432162576603075,
+      "mean_features_avg": 0.00765842308667958,
+      "mean_features_std": 0.006263317314827983,
+      "worst_features_avg": -0.18281060919120118,
+      "worst_features_max": -0.183774251383773,
+      "radius_ratio": -0.5722005753322656,
+      "perimeter_ratio": -0.4185087284065534,
+      "area_ratio": -0.5810126086316287
+    },
+    "error_features_std": {
+      "radius_mean": 0.5406235324357125,
+      "perimeter_mean": 0.526193618499616,
+      "area_mean": 0.4447744139149326,
+      "compactness_mean": 0.6491361006667267,
+      "concavity_mean": 0.5681220193759714,
+      "concave points_mean": 0.5331993103783472,
+      "radius_se": 0.482337771300455,
+      "radius_worst": 0.39708158959702977,
+      "perimeter_worst": 0.2736213394593202,
+      "area_worst": 0.2962524463380818,
+      "compactness_worst": 0.530048084062842,
+      "concavity_worst": 0.5112943746259261,
+      "concave points_worst": 0.26348391867104437,
+      "mean_features_avg": 0.45179709232911475,
+      "mean_features_std": 0.44390425727662464,
+      "worst_features_avg": 0.29220901709755165,
+      "worst_features_max": 0.2962524463380818,
+      "radius_ratio": 0.5346095030969849,
+      "perimeter_ratio": 0.9897547579548953,
+      "area_ratio": 0.46178090790189075
+    }
+  }
+}

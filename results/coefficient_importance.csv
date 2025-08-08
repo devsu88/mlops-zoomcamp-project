@@ -1,0 +1,21 @@
+feature,coefficient,abs_coefficient
+concave points_worst,0.34996412272790645,0.34996412272790645
+radius_worst,0.11861908954059851,0.11861908954059851
+radius_mean,0.0,0.0
+concavity_worst,0.0,0.0
+perimeter_ratio,0.0,0.0
+radius_ratio,0.0,0.0
+worst_features_max,0.0,0.0
+worst_features_avg,0.0,0.0
+mean_features_std,0.0,0.0
+mean_features_avg,0.0,0.0
+compactness_worst,0.0,0.0
+perimeter_mean,0.0,0.0
+area_worst,0.0,0.0
+perimeter_worst,0.0,0.0
+radius_se,0.0,0.0
+concave points_mean,0.0,0.0
+concavity_mean,0.0,0.0
+compactness_mean,0.0,0.0
+area_mean,0.0,0.0
+area_ratio,0.0,0.0

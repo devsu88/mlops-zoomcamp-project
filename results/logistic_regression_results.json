@@ -1,0 +1,25 @@
+{
+  "model_name": "logistic_regression",
+  "cv_recall_mean": 0.9411764705882352,
+  "cv_recall_std": 0.04159451654038516,
+  "cv_f1_mean": 0.9441500935221591,
+  "cv_f1_std": 0.04439886056677043,
+  "cv_accuracy_mean": 0.9582417582417582,
+  "cv_accuracy_std": 0.03361990888083154,
+  "test_accuracy": 0.9824561403508771,
+  "test_precision": 0.9761904761904762,
+  "test_recall": 0.9761904761904762,
+  "test_f1": 0.9761904761904762,
+  "test_roc_auc": 0.9993386243386244,
+  "test_pr_auc": 0.9988793967199283,
+  "confusion_matrix": [
+    [
+      71,
+      1
+    ],
+    [
+      1,
+      41
+    ]
+  ]
+}

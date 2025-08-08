@@ -1,0 +1,25 @@
+{
+  "model_name": "random_forest",
+  "cv_recall_mean": 0.9352941176470588,
+  "cv_recall_std": 0.03429971702850178,
+  "cv_f1_mean": 0.9408825239729541,
+  "cv_f1_std": 0.030964526389635778,
+  "cv_accuracy_mean": 0.956043956043956,
+  "cv_accuracy_std": 0.02305074391582751,
+  "test_accuracy": 0.9736842105263158,
+  "test_precision": 0.975609756097561,
+  "test_recall": 0.9523809523809523,
+  "test_f1": 0.963855421686747,
+  "test_roc_auc": 0.9933862433862434,
+  "test_pr_auc": 0.9908217255156031,
+  "confusion_matrix": [
+    [
+      71,
+      1
+    ],
+    [
+      2,
+      40
+    ]
+  ]
+}
