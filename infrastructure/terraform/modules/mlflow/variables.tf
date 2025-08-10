@@ -32,4 +32,4 @@ variable "database_password" {
 variable "artifact_bucket" {
   description = "Cloud Storage bucket for artifacts"
   type        = string
-} 
+}

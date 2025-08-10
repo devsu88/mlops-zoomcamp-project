@@ -11,4 +11,4 @@ output "database_name" {
 output "database_user" {
   description = "Database user"
   value       = google_sql_user.user.name
-} 
+}

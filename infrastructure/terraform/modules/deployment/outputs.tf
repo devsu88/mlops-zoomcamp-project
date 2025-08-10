@@ -6,4 +6,4 @@ output "api_url" {
 output "load_balancer_ip" {
   description = "Load balancer IP address"
   value       = google_compute_global_forwarding_rule.api_lb.ip_address
-} 
+}

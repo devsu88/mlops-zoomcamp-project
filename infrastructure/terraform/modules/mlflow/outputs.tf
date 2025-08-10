@@ -6,4 +6,4 @@ output "tracking_uri" {
 output "service_name" {
   description = "MLflow service name"
   value       = google_cloud_run_service.mlflow.name
-} 
+}

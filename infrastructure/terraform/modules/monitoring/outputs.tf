@@ -6,4 +6,4 @@ output "dashboard_url" {
 output "function_url" {
   description = "Batch monitoring function URL"
   value       = google_cloudfunctions_function.batch_monitoring.https_trigger_url
-} 
+}

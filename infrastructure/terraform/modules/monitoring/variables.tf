@@ -16,4 +16,4 @@ variable "data_bucket" {
 variable "monitoring_bucket" {
   description = "Cloud Storage bucket for monitoring"
   type        = string
-} 
+}

@@ -1,13 +1,13 @@
 terraform {
   required_version = ">= 1.0"
-  
+
   required_providers {
     google = {
       source  = "hashicorp/google"
       version = "~> 4.0"
     }
   }
-  
+
   backend "gcs" {
     bucket = "mlops-breast-cancer-terraform-state"
     prefix = "terraform/state"
@@ -34,7 +34,7 @@ resource "google_project_service" "required_apis" {
     "cloudbuild.googleapis.com",
     "iam.googleapis.com"
   ])
-  
+
   service = each.value
   project = var.project_id
 }
@@ -42,7 +42,7 @@ resource "google_project_service" "required_apis" {
 # Network module
 module "network" {
   source = "./modules/network"
-  
+
   project_id = var.project_id
   region     = var.region
   vpc_name   = "mlops-vpc"
@@ -51,10 +51,10 @@ module "network" {
 # Storage module
 module "storage" {
   source = "./modules/storage"
-  
+
   project_id = var.project_id
   region     = var.region
-  
+
   buckets = {
     "mlops-breast-cancer-data" = {
       location = "EUROPE-WEST1"
@@ -90,56 +90,56 @@ module "storage" {
 # Database module
 module "database" {
   source = "./modules/database"
-  
+
   project_id = var.project_id
   region     = var.region
-  
+
   database_name = "mlflow"
   database_user = "mlflow_user"
   database_password = var.database_password
-  
+
   depends_on = [google_project_service.required_apis]
 }
 
 # MLflow module - COMMENTATO PER DEPLOY BASE
 # module "mlflow" {
 #   source = "./modules/mlflow"
-#   
+#
 #   project_id = var.project_id
 #   region     = var.region
-#   
+#
 #   database_connection_name = module.database.connection_name
 #   database_name           = module.database.database_name
 #   database_user           = module.database.database_user
 #   database_password       = var.database_password
-#   
+#
 #   artifact_bucket = module.storage.bucket_names["mlops-breast-cancer-artifacts"]
-#   
+#
 #   depends_on = [module.database]
 # }
 
 # Prefect module - COMMENTATO PER DEPLOY BASE
 # module "prefect" {
 #   source = "./modules/prefect"
-#   
+#
 #   project_id = var.project_id
 #   region     = var.region
-#   
+#
 #   database_connection_name = module.database.connection_name
 #   database_name           = "prefect"
 #   database_user           = "prefect_user"
 #   database_password       = var.prefect_database_password
-#   
+#
 #   depends_on = [module.database]
 # }
 
 # Monitoring module - COMMENTATO PER DEPLOY BASE
 # module "monitoring" {
 #   source = "./modules/monitoring"
-#   
+#
 #   project_id = var.project_id
 #   region     = var.region
-#   
+#
 #   data_bucket = module.storage.bucket_names["mlops-breast-cancer-data"]
 #   monitoring_bucket = module.storage.bucket_names["mlops-breast-cancer-monitoring"]
 # }
@@ -147,10 +147,10 @@ module "database" {
 # Deployment module - COMMENTATO PER DEPLOY BASE
 # module "deployment" {
 #   source = "./modules/deployment"
-#   
+#
 #   project_id = var.project_id
 #   region     = var.region
-#   
+#
 #   model_bucket = module.storage.bucket_names["mlops-breast-cancer-models"]
 #   mlflow_tracking_uri = module.mlflow.tracking_uri
 # }

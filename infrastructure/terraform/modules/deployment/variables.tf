@@ -16,4 +16,4 @@ variable "mlflow_tracking_uri" {
 variable "model_bucket" {
   description = "Cloud Storage bucket for models"
   type        = string
-} 
+}

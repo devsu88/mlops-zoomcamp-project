@@ -27,4 +27,4 @@ variable "database_password" {
   description = "Database password"
   type        = string
   sensitive   = true
-} 
+}

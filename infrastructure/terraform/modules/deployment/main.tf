@@ -1,26 +1,26 @@
 resource "google_cloud_run_service" "api" {
   name     = "breast-cancer-api"
   location = var.region
-  
+
   template {
     spec {
       containers {
         image = "gcr.io/${var.project_id}/breast-cancer-api:latest"
-        
+
         env {
           name  = "MLFLOW_TRACKING_URI"
           value = var.mlflow_tracking_uri
         }
-        
+
         env {
           name  = "MODEL_BUCKET"
           value = var.model_bucket
         }
-        
+
         ports {
           container_port = 8080
         }
-        
+
         resources {
           limits = {
             cpu    = "1000m"
@@ -30,7 +30,7 @@ resource "google_cloud_run_service" "api" {
       }
     }
   }
-  
+
   traffic {
     percent         = 100
     latest_revision = true
@@ -67,7 +67,7 @@ resource "google_compute_backend_service" "api_backend" {
   protocol    = "HTTP"
   port_name   = "http"
   timeout_sec = 30
-  
+
   backend {
     group = google_cloud_run_service.api.status[0].url
   }
@@ -75,8 +75,8 @@ resource "google_compute_backend_service" "api_backend" {
 
 resource "google_compute_managed_ssl_certificate" "api_cert" {
   name = "api-ssl-cert"
-  
+
   managed {
     domains = ["api.mlops-breast-cancer.com"]
   }
-} 
+}

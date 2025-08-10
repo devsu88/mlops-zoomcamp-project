@@ -6,4 +6,4 @@ output "server_url" {
 output "service_name" {
   description = "Prefect service name"
   value       = google_cloud_run_service.prefect.name
-} 
+}

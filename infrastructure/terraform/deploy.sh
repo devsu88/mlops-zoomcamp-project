@@ -51,4 +51,4 @@ terraform apply -var-file="environments/dev.tfvars" -auto-approve
 echo "✅ Deployment completato! Outputs:"
 terraform output
 
-echo "🎉 Infrastruttura deployata con successo!" 
+echo "🎉 Infrastruttura deployata con successo!"

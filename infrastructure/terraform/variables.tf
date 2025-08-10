@@ -32,4 +32,4 @@ variable "prefect_database_password" {
   description = "Prefect database password"
   type        = string
   sensitive   = true
-} 
+}

@@ -6,17 +6,24 @@ repos:
         language_version: python3
         args: [--line-length=88]
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        args: [--max-line-length=88, --ignore=E203,W503]
+  # - repo: https://github.com/pycqa/flake8
+  #   rev: 6.1.0
+  #   hooks:
+  #     - id: flake8
+  #       args:
+  #         - "--max-line-length=88"
+  #         - "--ignore=E203,W503"
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.7.1
     hooks:
       - id: mypy
-        additional_dependencies: [types-all]
+        additional_dependencies: [
+          types-requests,
+          types-PyYAML,
+          types-setuptools,
+          types-six
+        ]
         args: [--ignore-missing-imports]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks

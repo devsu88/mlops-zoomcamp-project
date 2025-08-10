@@ -14,4 +14,4 @@ variable "buckets" {
     location = string
     labels   = map(string)
   }))
-} 
+}
