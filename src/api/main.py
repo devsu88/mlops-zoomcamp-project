@@ -234,12 +234,12 @@ def get_confidence_level(probability: float) -> str:
 
 
 def log_prediction(features: Dict[str, float], prediction: int, probability: float):
-    """Logga la predizione per monitoring."""
+    """Logga la predizione per audit trail."""
     log_entry = {
         "timestamp": datetime.now().isoformat(),
         "features": features,
-        "prediction": prediction,
-        "probability": probability,
+        "prediction": int(prediction),  # Converti numpy.int64 in int
+        "probability": float(probability),  # Converti numpy.float64 in float
         "prediction_label": "Maligno" if prediction == 1 else "Benigno",
     }
 
