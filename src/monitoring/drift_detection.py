@@ -11,13 +11,15 @@ import numpy as np
 import pandas as pd
 from evidently import ColumnMapping
 from evidently.metric_preset import DataDriftPreset
-from evidently.metrics import (ColumnDriftMetric, DataDriftTable,
-                               DatasetDriftMetric)
+from evidently.metrics import ColumnDriftMetric, DataDriftTable, DatasetDriftMetric
 from evidently.report import Report
 
-from src.monitoring.monitoring_config import (DRIFT_THRESHOLDS, FEATURE_CONFIG,
-                                              ensure_directories,
-                                              get_monitoring_paths)
+from src.monitoring.monitoring_config import (
+    DRIFT_THRESHOLDS,
+    FEATURE_CONFIG,
+    ensure_directories,
+    get_monitoring_paths,
+)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

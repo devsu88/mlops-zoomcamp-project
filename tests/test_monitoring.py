@@ -9,8 +9,7 @@ import pytest
 
 from src.monitoring.data_quality import DataQualityMonitor
 from src.monitoring.drift_detection import DriftDetector
-from src.monitoring.monitoring_config import (ensure_directories,
-                                              get_monitoring_paths)
+from src.monitoring.monitoring_config import ensure_directories, get_monitoring_paths
 from src.monitoring.performance_monitoring import PerformanceMonitor
 
 

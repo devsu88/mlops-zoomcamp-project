@@ -13,16 +13,23 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from evidently import ColumnMapping
-from evidently.metric_preset import (ClassificationPreset, DataDriftPreset,
-                                     DataQualityPreset)
+from evidently.metric_preset import (
+    ClassificationPreset,
+    DataDriftPreset,
+    DataQualityPreset,
+)
+
 # Evidently 0.4.0 non ha il dashboard integrato
 # Useremo i report HTML invece
 from evidently.report import Report
 
-from src.monitoring.monitoring_config import (EVIDENTLY_HOST, EVIDENTLY_PORT,
-                                              FEATURE_CONFIG,
-                                              ensure_directories,
-                                              get_monitoring_paths)
+from src.monitoring.monitoring_config import (
+    EVIDENTLY_HOST,
+    EVIDENTLY_PORT,
+    FEATURE_CONFIG,
+    ensure_directories,
+    get_monitoring_paths,
+)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

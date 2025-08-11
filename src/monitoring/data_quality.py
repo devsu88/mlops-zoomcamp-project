@@ -14,10 +14,12 @@ from evidently.metric_preset import DataQualityPreset
 from evidently.metrics import DataQualityStabilityMetric
 from evidently.report import Report
 
-from src.monitoring.monitoring_config import (DATA_QUALITY_THRESHOLDS,
-                                              FEATURE_CONFIG,
-                                              ensure_directories,
-                                              get_monitoring_paths)
+from src.monitoring.monitoring_config import (
+    DATA_QUALITY_THRESHOLDS,
+    FEATURE_CONFIG,
+    ensure_directories,
+    get_monitoring_paths,
+)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

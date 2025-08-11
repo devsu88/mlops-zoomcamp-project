@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-08-08T16:47:26.243493",
+  "timestamp": "2025-08-11T09:31:33.937336",
   "monitoring_status": "active",
   "reports": {
     "data_quality": {
-      "timestamp": "2025-08-08T16:05:15.869275",
+      "timestamp": "2025-08-11T09:30:29.304347",
       "data_quality_score": 1.0,
       "issues": [],
       "summary": {
@@ -14,7 +14,7 @@
       }
     },
     "data_drift": {
-      "timestamp": "2025-08-08T16:20:52.400548",
+      "timestamp": "2025-08-11T09:30:49.129440",
       "dataset_drift_detected": false,
       "drift_score": 0.09523809523809523,
       "drifted_columns": [],
@@ -29,7 +29,7 @@
       }
     },
     "model_performance": {
-      "timestamp": "2025-08-08T16:36:50.874941",
+      "timestamp": "2025-08-11T09:31:09.950747",
       "reference_performance": {
         "accuracy": 0.9208791208791208,
         "precision": 0.9926470588235294,

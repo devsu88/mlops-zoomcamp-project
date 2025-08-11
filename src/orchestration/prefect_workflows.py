@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 
 import joblib
+
 # Configurare matplotlib per ambiente non-interactive
 import matplotlib
 import mlflow
@@ -30,8 +31,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 # Importazioni corrette per le funzioni
 from data.preprocessing import main as preprocess_data
-from models.feature_importance_analysis import \
-    main as analyze_feature_importance
+from models.feature_importance_analysis import main as analyze_feature_importance
 from models.hyperparameter_tuning import main as tune_hyperparameters
 from models.model_validation import main as perform_comprehensive_validation
 from models.train_baseline import main as train_baseline_models

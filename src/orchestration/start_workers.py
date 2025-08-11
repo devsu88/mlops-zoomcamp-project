@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import List, Tuple
 
 # Configurazione logging
 logging.basicConfig(
@@ -17,7 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Lista dei processi worker
-worker_processes = []
+worker_processes: List[Tuple[str, subprocess.Popen]] = []
 
 
 def signal_handler(sig, frame):

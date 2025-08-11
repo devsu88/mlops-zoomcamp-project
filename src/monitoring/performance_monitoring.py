@@ -12,15 +12,19 @@ import numpy as np
 import pandas as pd
 from evidently import ColumnMapping
 from evidently.metric_preset import ClassificationPreset
-from evidently.metrics import (ClassificationConfusionMatrix,
-                               ClassificationQualityByClass,
-                               ClassificationQualityMetric)
+from evidently.metrics import (
+    ClassificationConfusionMatrix,
+    ClassificationQualityByClass,
+    ClassificationQualityMetric,
+)
 from evidently.report import Report
 
-from src.monitoring.monitoring_config import (FEATURE_CONFIG,
-                                              PERFORMANCE_THRESHOLDS,
-                                              ensure_directories,
-                                              get_monitoring_paths)
+from src.monitoring.monitoring_config import (
+    FEATURE_CONFIG,
+    PERFORMANCE_THRESHOLDS,
+    ensure_directories,
+    get_monitoring_paths,
+)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
