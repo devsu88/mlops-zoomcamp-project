@@ -1,3 +1,4 @@
+# Cloud Run service per Evidently Dashboard
 resource "google_cloud_run_service" "evidently" {
   name     = "evidently-dashboard"
   location = var.region
@@ -5,7 +6,7 @@ resource "google_cloud_run_service" "evidently" {
   template {
     spec {
       containers {
-        image = "gcr.io/${var.project_id}/evidently:latest"
+        image = var.evidently_image
 
         env {
           name  = "DATA_BUCKET"
@@ -17,8 +18,20 @@ resource "google_cloud_run_service" "evidently" {
           value = var.monitoring_bucket
         }
 
+        env {
+          name  = "ENVIRONMENT"
+          value = "cloud"
+        }
+
         ports {
           container_port = 8080
+        }
+
+        resources {
+          limits = {
+            cpu    = "1000m"
+            memory = "2Gi"
+          }
         }
       }
     }
@@ -30,6 +43,57 @@ resource "google_cloud_run_service" "evidently" {
   }
 }
 
+# Cloud Run service per Batch Monitoring
+resource "google_cloud_run_service" "batch_monitoring" {
+  name     = "batch-monitoring"
+  location = var.region
+
+  template {
+    spec {
+      containers {
+        image = var.batch_monitoring_image
+
+        env {
+          name  = "DATA_BUCKET"
+          value = var.data_bucket
+        }
+
+        env {
+          name  = "MONITORING_BUCKET"
+          value = var.monitoring_bucket
+        }
+
+        env {
+          name  = "MODELS_BUCKET"
+          value = var.models_bucket
+        }
+
+        env {
+          name  = "ENVIRONMENT"
+          value = "cloud"
+        }
+
+        ports {
+          container_port = 8080
+        }
+
+        resources {
+          limits = {
+            cpu    = "1000m"
+            memory = "2Gi"
+          }
+        }
+      }
+    }
+  }
+
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
+}
+
+# Accesso pubblico per Evidently Dashboard
 resource "google_cloud_run_service_iam_member" "public_access" {
   location = google_cloud_run_service.evidently.location
   service  = google_cloud_run_service.evidently.name
@@ -37,26 +101,10 @@ resource "google_cloud_run_service_iam_member" "public_access" {
   member   = "allUsers"
 }
 
-# Cloud Function per batch monitoring
-resource "google_cloudfunctions_function" "batch_monitoring" {
-  name        = "batch-monitoring"
-  description = "Batch monitoring function for Evidently"
-  runtime     = "python39"
-
-  available_memory_mb   = 256
-  source_archive_bucket = google_storage_bucket.function_bucket.name
-  source_archive_object = google_storage_bucket_object.function_zip.name
-  trigger_http         = true
-  entry_point          = "run_monitoring"
-}
-
-resource "google_storage_bucket" "function_bucket" {
-  name     = "${var.project_id}-function-bucket"
-  location = var.region
-}
-
-resource "google_storage_bucket_object" "function_zip" {
-  name   = "batch_monitoring.zip"
-  bucket = google_storage_bucket.function_bucket.name
-  source = "batch_monitoring.py"
+# Accesso pubblico per Batch Monitoring
+resource "google_cloud_run_service_iam_member" "batch_monitoring_public_access" {
+  location = google_cloud_run_service.batch_monitoring.location
+  service  = google_cloud_run_service.batch_monitoring.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
 }

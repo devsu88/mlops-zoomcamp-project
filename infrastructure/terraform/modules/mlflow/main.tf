@@ -7,6 +7,9 @@ resource "google_cloud_run_service" "mlflow" {
       containers {
         image = "gcr.io/${var.project_id}/mlflow:latest"
 
+        command = ["mlflow"]
+        args    = ["server", "--host", "0.0.0.0", "--port", "5000"]
+
         env {
           name  = "MLFLOW_TRACKING_URI"
           value = "postgresql://${var.database_user}:${var.database_password}@${var.database_connection_name}/${var.database_name}"
@@ -17,10 +20,30 @@ resource "google_cloud_run_service" "mlflow" {
           value = "gs://${var.artifact_bucket}"
         }
 
+        env {
+          name  = "MLFLOW_SERVE_ARTIFACTS"
+          value = "true"
+        }
+
+        env {
+          name  = "ENVIRONMENT"
+          value = "cloud"
+        }
+
         ports {
           container_port = 5000
+          name           = "http1"
+        }
+
+        resources {
+          limits = {
+            cpu    = "1000m"
+            memory = "1Gi"
+          }
         }
       }
+
+      timeout_seconds = 300
     }
   }
 

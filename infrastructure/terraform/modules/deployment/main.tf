@@ -2,6 +2,13 @@ resource "google_cloud_run_service" "api" {
   name     = "breast-cancer-api"
   location = var.region
 
+  metadata {
+    annotations = {
+      "run.googleapis.com/ingress" = "all"
+      "run.googleapis.com/ingress-status" = "all"
+    }
+  }
+
   template {
     spec {
       containers {
@@ -17,8 +24,13 @@ resource "google_cloud_run_service" "api" {
           value = var.model_bucket
         }
 
+        env {
+          name  = "ENVIRONMENT"
+          value = "cloud"
+        }
+
         ports {
-          container_port = 8080
+          container_port = 8000
         }
 
         resources {
@@ -44,39 +56,47 @@ resource "google_cloud_run_service_iam_member" "public_access" {
   member   = "allUsers"
 }
 
-# Load balancer per l'API
-resource "google_compute_global_forwarding_rule" "api_lb" {
-  name       = "api-load-balancer"
-  target     = google_compute_target_https_proxy.api_proxy.id
-  port_range = "443"
+# Permette l'accesso pubblico senza autenticazione
+resource "google_cloud_run_service_iam_member" "public_access_noauth" {
+  location = google_cloud_run_service.api.location
+  service  = google_cloud_run_service.api.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
 }
 
-resource "google_compute_target_https_proxy" "api_proxy" {
-  name             = "api-https-proxy"
-  url_map          = google_compute_url_map.api_url_map.id
-  ssl_certificates = [google_compute_managed_ssl_certificate.api_cert.id]
-}
+# Load balancer per l'API (commentato per ora - da implementare in seguito)
+# resource "google_compute_global_forwarding_rule" "api_lb" {
+#   name       = "api-load-balancer"
+#   target     = google_compute_target_https_proxy.api_proxy.id
+#   port_range = "443"
+# }
 
-resource "google_compute_url_map" "api_url_map" {
-  name            = "api-url-map"
-  default_service = google_compute_backend_service.api_backend.id
-}
+# resource "google_compute_target_https_proxy" "api_proxy" {
+#   name             = "api-https-proxy"
+#   url_map          = google_compute_url_map.api_url_map.id
+#   ssl_certificates = [google_compute_managed_ssl_certificate.api_cert.id]
+# }
 
-resource "google_compute_backend_service" "api_backend" {
-  name        = "api-backend"
-  protocol    = "HTTP"
-  port_name   = "http"
-  timeout_sec = 30
+# resource "google_compute_url_map" "api_url_map" {
+#   name            = "api-url-map"
+#   default_service = google_compute_backend_service.api_backend.id
+# }
 
-  backend {
-    group = google_cloud_run_service.api.status[0].url
-  }
-}
+# resource "google_compute_backend_service" "api_backend" {
+#   name        = "api-backend"
+#   protocol    = "HTTP"
+#   port_name   = "http"
+#   timeout_sec = 30
 
-resource "google_compute_managed_ssl_certificate" "api_cert" {
-  name = "api-ssl-cert"
+#   backend {
+#     group = google_cloud_run_service.api.status[0].url
+#   }
+# }
 
-  managed {
-    domains = ["api.mlops-breast-cancer.com"]
-  }
-}
+# resource "google_compute_managed_ssl_certificate" "api_cert" {
+#   name = "api-ssl-cert"
+
+#   managed {
+#     domains = ["api.mlops-breast-cancer.com"]
+#   }
+# }

@@ -17,6 +17,11 @@ resource "google_cloud_run_service" "prefect" {
           value = "postgresql://${var.database_user}:${var.database_password}@${var.database_connection_name}/${var.database_name}"
         }
 
+        env {
+          name  = "ENVIRONMENT"
+          value = "cloud"
+        }
+
         ports {
           container_port = 4200
         }

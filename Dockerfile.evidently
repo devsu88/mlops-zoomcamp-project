@@ -1,0 +1,21 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Installa solo le dipendenze essenziali per Evidently + Streamlit
+RUN pip install --no-cache-dir \
+    evidently==0.4.0 \
+    streamlit==1.28.0 \
+    google-cloud-storage==2.10.0 \
+    pandas==2.0.3 \
+    numpy==1.24.3
+
+# Copia tutti i file necessari per il funzionamento dual-mode
+COPY src/monitoring/ ./monitoring/
+COPY src/__init__.py ./__init__.py
+
+# Esponi porta Streamlit
+EXPOSE 8080
+
+# Comando di avvio Streamlit
+CMD ["streamlit", "run", "monitoring/dashboard.py", "--server.port", "8080", "--server.address", "0.0.0.0"]

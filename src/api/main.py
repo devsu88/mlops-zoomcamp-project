@@ -24,17 +24,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configurazione
-MODEL_PATH = Path("results/models/best_model.joblib")
-METADATA_PATH = Path("results/models/model_metadata.json")
-SCALER_PATH = Path("data/processed/scaler.joblib")
-PREPROCESSING_METADATA_PATH = Path("data/processed/preprocessing_metadata.json")
+# Import configurazione dual-mode
+from src.api.config import get_api_config, is_cloud_environment
+
+# Configurazione dual-mode
+api_config = get_api_config()
 
 # Inizializzazione FastAPI
 app = FastAPI(
-    title="Breast Cancer Classification API",
-    description="API per la classificazione del tumore al seno utilizzando machine learning",
-    version="1.0.0",
+    title=api_config["api_title"],
+    description=api_config["api_description"],
+    version=api_config["api_version"],
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -155,39 +155,108 @@ def load_model():
     global model, scaler, feature_names, model_metadata
 
     try:
+        # Usare configurazione dual-mode
+        model_path = api_config["model_path"]
+        scaler_path = api_config["scaler_path"]
+        metadata_path = api_config["metadata_path"]
+        preprocessing_metadata_path = api_config["preprocessing_metadata_path"]
+
+        logger.info(f"Ambiente: {api_config['environment']}")
+        logger.info(f"Model path: {model_path}")
+        logger.info(f"Scaler path: {scaler_path}")
+
         # Caricare modello
-        if MODEL_PATH.exists():
-            model = joblib.load(MODEL_PATH)
-            logger.info(f"Modello caricato: {MODEL_PATH}")
+        if is_cloud_environment():
+            # Per cloud, usare Google Cloud Storage
+            from google.cloud import storage
+            import tempfile
+
+            # Download temporaneo del modello
+            with tempfile.NamedTemporaryFile(
+                suffix=".joblib", delete=False
+            ) as tmp_file:
+                storage_client = storage.Client()
+                bucket = storage_client.bucket(api_config["model_bucket"])
+                blob = bucket.blob("best_model.joblib")
+                blob.download_to_filename(tmp_file.name)
+                model = joblib.load(tmp_file.name)
+                logger.info(f"Modello caricato da cloud: {model_path}")
         else:
-            logger.error(f"Modello non trovato: {MODEL_PATH}")
-            return False
+            # Per locale, usare file system
+            if Path(model_path).exists():
+                model = joblib.load(model_path)
+                logger.info(f"Modello caricato da locale: {model_path}")
+            else:
+                logger.error(f"Modello non trovato: {model_path}")
+                return False
 
         # Caricare scaler
-        if SCALER_PATH.exists():
-            scaler = joblib.load(SCALER_PATH)
-            logger.info(f"Scaler caricato: {SCALER_PATH}")
+        if is_cloud_environment():
+            # Per cloud, download temporaneo
+            with tempfile.NamedTemporaryFile(
+                suffix=".joblib", delete=False
+            ) as tmp_file:
+                storage_client = storage.Client()
+                bucket = storage_client.bucket(api_config["model_bucket"])
+                blob = bucket.blob("scaler.joblib")
+                blob.download_to_filename(tmp_file.name)
+                scaler = joblib.load(tmp_file.name)
+                logger.info(f"Scaler caricato da cloud: {scaler_path}")
         else:
-            logger.warning(f"Scaler non trovato: {SCALER_PATH}")
+            # Per locale
+            if Path(scaler_path).exists():
+                scaler = joblib.load(scaler_path)
+                logger.info(f"Scaler caricato da locale: {scaler_path}")
+            else:
+                logger.warning(f"Scaler non trovato: {scaler_path}")
 
         # Caricare feature names dal preprocessing metadata
-        if PREPROCESSING_METADATA_PATH.exists():
-            with open(PREPROCESSING_METADATA_PATH, "r") as f:
-                preprocessing_metadata = json.load(f)
-                feature_names = preprocessing_metadata.get("selected_features", [])
-            logger.info(f"Feature names caricati da: {PREPROCESSING_METADATA_PATH}")
+        if is_cloud_environment():
+            # Per cloud, download temporaneo
+            with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
+                storage_client = storage.Client()
+                bucket = storage_client.bucket(api_config["model_bucket"])
+                blob = bucket.blob("preprocessing_metadata.json")
+                blob.download_to_filename(tmp_file.name)
+                with open(tmp_file.name, "r") as f:
+                    preprocessing_metadata = json.load(f)
+                    feature_names = preprocessing_metadata.get("selected_features", [])
+                logger.info(
+                    f"Feature names caricati da cloud: {preprocessing_metadata_path}"
+                )
         else:
-            logger.warning(
-                f"Preprocessing metadata non trovato: {PREPROCESSING_METADATA_PATH}"
-            )
+            # Per locale
+            if Path(preprocessing_metadata_path).exists():
+                with open(preprocessing_metadata_path, "r") as f:
+                    preprocessing_metadata = json.load(f)
+                    feature_names = preprocessing_metadata.get("selected_features", [])
+                logger.info(
+                    f"Feature names caricati da locale: {preprocessing_metadata_path}"
+                )
+            else:
+                logger.warning(
+                    f"Preprocessing metadata non trovato: {preprocessing_metadata_path}"
+                )
 
         # Caricare metadata
-        if METADATA_PATH.exists():
-            with open(METADATA_PATH, "r") as f:
-                model_metadata = json.load(f)
-            logger.info(f"Metadata caricati: {METADATA_PATH}")
+        if is_cloud_environment():
+            # Per cloud, download temporaneo
+            with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
+                storage_client = storage.Client()
+                bucket = storage_client.bucket(api_config["model_bucket"])
+                blob = bucket.blob("model_metadata.json")
+                blob.download_to_filename(tmp_file.name)
+                with open(tmp_file.name, "r") as f:
+                    model_metadata = json.load(f)
+                logger.info(f"Metadata caricati da cloud: {metadata_path}")
         else:
-            logger.warning(f"Metadata non trovati: {METADATA_PATH}")
+            # Per locale
+            if Path(metadata_path).exists():
+                with open(metadata_path, "r") as f:
+                    model_metadata = json.load(f)
+                logger.info(f"Metadata caricati da locale: {metadata_path}")
+            else:
+                logger.warning(f"Metadata non trovati: {metadata_path}")
 
         return True
 

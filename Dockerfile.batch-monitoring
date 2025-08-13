@@ -1,0 +1,25 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Installa dipendenze per batch monitoring
+RUN pip install --no-cache-dir \
+    evidently==0.4.0 \
+    google-cloud-storage==2.10.0 \
+    pandas==2.0.3 \
+    numpy==1.24.3 \
+    flask==2.3.3 \
+    gunicorn==21.2.0
+
+# Copia tutti i file necessari per il funzionamento dual-mode
+COPY src/monitoring/ ./monitoring/
+COPY src/__init__.py ./__init__.py
+
+# Crea un wrapper Flask per esporre la funzione come HTTP endpoint
+COPY batch_monitoring_wrapper.py ./batch_monitoring_wrapper.py
+
+# Esponi porta
+EXPOSE 8080
+
+# Comando di avvio con Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "300", "batch_monitoring_wrapper:app"]

@@ -1,9 +1,19 @@
-output "dashboard_url" {
-  description = "Evidently dashboard URL"
+output "evidently_url" {
+  description = "The URL of the Evidently Dashboard"
   value       = google_cloud_run_service.evidently.status[0].url
 }
 
-output "function_url" {
-  description = "Batch monitoring function URL"
-  value       = google_cloudfunctions_function.batch_monitoring.https_trigger_url
+output "batch_monitoring_url" {
+  description = "The URL of the Batch Monitoring service"
+  value       = google_cloud_run_service.batch_monitoring.status[0].url
+}
+
+output "evidently_service_name" {
+  description = "The name of the Evidently Dashboard service"
+  value       = google_cloud_run_service.evidently.name
+}
+
+output "batch_monitoring_service_name" {
+  description = "The name of the Batch Monitoring service"
+  value       = google_cloud_run_service.batch_monitoring.name
 }

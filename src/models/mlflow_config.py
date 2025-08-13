@@ -18,8 +18,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configurazione MLflow
-MLFLOW_TRACKING_URI = "http://localhost:5000"  # Per sviluppo locale
-MLFLOW_REGISTRY_URI = "sqlite:///mlflow.db"  # Per sviluppo locale
+# Dual-mode: locale vs cloud
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")  # local, cloud
+
+if ENVIRONMENT == "cloud":
+    MLFLOW_TRACKING_URI = "https://mlflow-server-403815755558.europe-west1.run.app"
+    MLFLOW_REGISTRY_URI = "https://mlflow-server-403815755558.europe-west1.run.app"
+else:
+    MLFLOW_TRACKING_URI = "http://localhost:5000"  # Per sviluppo locale
+    MLFLOW_REGISTRY_URI = "sqlite:///mlflow.db"  # Per sviluppo locale
+
 EXPERIMENT_NAME = "breast-cancer-classification"
 MODEL_REGISTRY_NAME = "breast-cancer-model"
 
@@ -29,11 +37,23 @@ def setup_mlflow():
     Configura MLflow per experiment tracking e model registry.
     """
     logger.info("=== SETUP MLFLOW ===")
+    logger.info(f"Ambiente: {ENVIRONMENT}")
+    logger.info(f"MLflow tracking URI: {MLFLOW_TRACKING_URI}")
 
     try:
         # Configurare tracking URI
         mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-        logger.info(f"MLflow tracking URI: {MLFLOW_TRACKING_URI}")
+
+        if ENVIRONMENT == "cloud":
+            # Per cloud, verifichiamo la connessione
+            try:
+                mlflow.list_experiments()
+                logger.info("✅ Connessione a MLflow Cloud stabilita!")
+            except Exception as cloud_error:
+                logger.error(f"Errore connessione MLflow Cloud: {cloud_error}")
+                logger.info("Fallback a tracking locale...")
+                mlflow.set_tracking_uri("file:./mlruns")
+                ENVIRONMENT = "local"
 
         # Creare o ottenere experiment
         experiment = mlflow.get_experiment_by_name(EXPERIMENT_NAME)

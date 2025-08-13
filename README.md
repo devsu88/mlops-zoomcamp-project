@@ -30,7 +30,7 @@ Questo progetto dimostra l'implementazione completa di una **pipeline MLOps end-
 - **Model Training**: Training automatizzato con hyperparameter tuning
 - **Model Registry**: Gestione versioni e deployment dei modelli
 - **API Deployment**: Servizio REST containerizzato con FastAPI
-- **Monitoring**: Monitoring in tempo reale con Evidently AI
+- **Monitoring**: Monitoring in tempo reale con Evidently AI (Dashboard + Batch Monitoring)
 - **CI/CD**: Pipeline automatizzata con GitHub Actions
 - **Infrastructure as Code**: Provisioning cloud con Terraform
 
@@ -51,8 +51,14 @@ Il progetto è progettato per insegnare:
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │ Cloud Run   │  │ Cloud SQL   │  │ Cloud       │          │
-│  │ (FastAPI)   │  │ (PostgreSQL)│  │ Storage     │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
+│  │ Services    │  │ (PostgreSQL)│  │ Storage     │          │
+│  │ • API       │  │ • MLflow DB │  │ • Data      │          │
+│  │ • MLflow    │  │ • Prefect DB│  │ • Models    │          │
+│  │ • Prefect   │  └─────────────┘  │ • Artifacts │          │
+│  │ • Evidently │                   │ • Monitoring│          │
+│  │ • Batch     │                   └─────────────┘          │
+│  │   Monitoring│                                            │
+│  └─────────────┘                                            │
 ├─────────────────────────────────────────────────────────────────┤
 │                    Infrastructure as Code                      │
 │                    (Terraform)                                │
@@ -116,10 +122,10 @@ features = [
 
 ### ☁️ Cloud Platform
 - **Google Cloud Platform (GCP)**: Piattaforma cloud principale
-- **Cloud Run**: Deployment serverless dell'API
-- **Cloud Storage**: Storage per dati e modelli
-- **Cloud SQL**: Database PostgreSQL per MLflow
-- **Cloud Monitoring**: Monitoring e logging
+- **Cloud Run**: Deployment serverless di tutti i servizi (API, MLflow, Prefect, Evidently, Batch Monitoring)
+- **Cloud Storage**: Storage per dati, modelli, artifacts e monitoring
+- **Cloud SQL**: Database PostgreSQL per MLflow e Prefect
+- **Cloud Monitoring**: Monitoring e logging centralizzato
 
 ### 🔬 Machine Learning
 - **Scikit-learn**: Algoritmi ML e preprocessing
@@ -448,57 +454,104 @@ performance_report = monitor.monitor_performance(predictions, actuals)
 - ROC/PR curves
 - Prediction drift
 
-## ☁️ Deployment Cloud
+## 🚀 **DEPLOYMENT SU GOOGLE CLOUD PLATFORM**
 
-### GCP Setup
+### **Prerequisiti**
+- Account Google Cloud Platform attivo
+- Google Cloud SDK installato e configurato
+- Progetto GCP con API abilitate (Cloud Run, Cloud Build, Container Registry)
+- Docker installato e configurato
 
+### **Configurazione Iniziale**
 ```bash
-# 1. Enable APIs
+# Autenticazione GCP
+gcloud auth login
+gcloud config set project mlops-breast-cancer
+
+# Abilitazione API necessarie
 gcloud services enable run.googleapis.com
-gcloud services enable sqladmin.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable containerregistry.googleapis.com
 gcloud services enable storage.googleapis.com
 
-# 2. Create service account
-gcloud iam service-accounts create terraform-sa \
-    --display-name="Terraform Service Account"
-
-# 3. Grant permissions
-gcloud projects add-iam-policy-binding mlops-breast-cancer \
-    --member="serviceAccount:terraform-sa@mlops-breast-cancer.iam.gserviceaccount.com" \
-    --role="roles/editor"
+# Configurazione Docker per GCP
+gcloud auth configure-docker
 ```
 
-### Terraform Infrastructure
-
-```hcl
-# infrastructure/terraform/main.tf
-terraform {
-  backend "gcs" {
-    bucket = "mlops-breast-cancer-terraform-state"
-    prefix = "terraform/state"
-  }
-}
-
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-```
-
-### Cloud Run Deployment
-
+### **Deployment Manuale**
 ```bash
-# Build e push Docker image
-docker build -t gcr.io/mlops-breast-cancer/api .
-docker push gcr.io/mlops-breast-cancer/api
+# Build e push immagine Docker
+make gcp-build
+make gcp-push
 
 # Deploy su Cloud Run
-gcloud run deploy breast-cancer-api \
-    --image gcr.io/mlops-breast-cancer/api \
-    --platform managed \
-    --region europe-west1 \
-    --allow-unauthenticated
+make gcp-deploy
+
+# Oppure tutto in un comando
+make gcp-deploy-all
 ```
+
+### **Deployment Automatico con Cloud Build**
+```bash
+# Creazione trigger per CI/CD
+gcloud builds triggers create github \
+  --name="mlops-breast-cancer-trigger" \
+  --repo-name="mlops-zoomcamp-project" \
+  --repo-owner="salvatoreucchino" \
+  --branch-pattern="^main$" \
+  --build-config="cloudbuild.yaml"
+```
+
+### **Configurazione Cloud Run**
+- **Servizio**: `mlops-breast-cancer-api`
+- **Regione**: `europe-west1`
+- **Porta**: `8000`
+- **Memoria**: `2Gi`
+- **CPU**: `1`
+- **Max Istanze**: `10`
+- **Timeout**: `300s`
+- **Accesso**: Pubblico (--allow-unauthenticated)
+
+### **URL del Servizio**
+```
+https://mlops-breast-cancer-api-wrfh4ve2na-ew.a.run.app
+```
+
+### **Endpoints Disponibili**
+- **Health Check**: `GET /health`
+- **Predizione**: `POST /predict`
+- **Documentazione**: `GET /docs`
+- **Root**: `GET /`
+
+### **Monitoraggio e Logs**
+```bash
+# Status del servizio
+make gcp-status
+
+# Logs del servizio
+make gcp-logs
+
+# Metriche Cloud Run
+gcloud run services describe mlops-breast-cancer-api --region=europe-west1
+```
+
+### **Scaling e Performance**
+- **Auto-scaling**: Abilitato automaticamente
+- **Cold Start**: ~2-5 secondi per la prima richiesta
+- **Warm Start**: ~100-200ms per richieste successive
+- **Concorrenza**: Fino a 10 istanze simultanee
+
+### **Sicurezza**
+- **HTTPS**: Abilitato automaticamente
+- **Autenticazione**: Disabilitata per demo (--allow-unauthenticated)
+- **IAM**: Configurabile tramite Google Cloud Console
+- **VPC**: Possibilità di configurare rete privata
+
+### **Backup e Disaster Recovery**
+- **Container Registry**: Backup automatico delle immagini
+- **Cloud Run**: Ridondanza geografica configurabile
+- **Rollback**: Possibilità di tornare a versioni precedenti
+- **Monitoring**: Integrato con Google Cloud Monitoring
 
 ## 🔧 Comandi Utili
 

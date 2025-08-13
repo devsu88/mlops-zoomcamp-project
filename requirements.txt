@@ -10,7 +10,7 @@ mlflow==2.8.1
 
 # Prefect for workflow orchestration
 prefect==2.14.0
-griffe>=0.20.0
+griffe==0.32.0
 
 # FastAPI for model deployment
 fastapi==0.104.1

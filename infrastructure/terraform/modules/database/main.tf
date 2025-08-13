@@ -22,13 +22,28 @@ resource "google_sql_database_instance" "instance" {
   deletion_protection = false
 }
 
-resource "google_sql_database" "database" {
-  name     = var.database_name
+# Database MLflow
+resource "google_sql_database" "mlflow_database" {
+  name     = "mlflow"
   instance = google_sql_database_instance.instance.name
 }
 
-resource "google_sql_user" "user" {
-  name     = var.database_user
+# Database Prefect
+resource "google_sql_database" "prefect_database" {
+  name     = "prefect"
   instance = google_sql_database_instance.instance.name
-  password = var.database_password
+}
+
+# User MLflow
+resource "google_sql_user" "mlflow_user" {
+  name     = var.mlflow_user
+  instance = google_sql_database_instance.instance.name
+  password = var.mlflow_password
+}
+
+# User Prefect
+resource "google_sql_user" "prefect_user" {
+  name     = var.prefect_user
+  instance = google_sql_database_instance.instance.name
+  password = var.prefect_password
 }

@@ -32,12 +32,22 @@ output "database_connection_name" {
   value       = module.database.connection_name
 }
 
-output "database_name" {
-  description = "Database name"
-  value       = module.database.database_name
+output "mlflow_database_name" {
+  description = "MLflow database name"
+  value       = module.database.mlflow_database_name
 }
 
-output "database_user" {
-  description = "Database user"
-  value       = module.database.database_user
+output "mlflow_user" {
+  description = "MLflow database user"
+  value       = module.database.mlflow_user
+}
+
+output "prefect_database_name" {
+  description = "Prefect database name"
+  value       = module.database.prefect_database_name
+}
+
+output "prefect_user" {
+  description = "Prefect database user"
+  value       = module.database.prefect_user
 }

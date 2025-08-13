@@ -1,0 +1,8 @@
+# Usa l'immagine ufficiale MLflow
+FROM ghcr.io/mlflow/mlflow:v3.2.0
+
+# Esponi porta MLflow
+EXPOSE 5000
+
+# L'immagine ufficiale ha già il comando corretto configurato
+# Non serve sovrascriverlo

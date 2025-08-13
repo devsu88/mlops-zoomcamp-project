@@ -11,9 +11,39 @@ PROCESSED_DATA_DIR = DATA_DIR / "processed"
 MODELS_DIR = PROJECT_ROOT / "models"
 MONITORING_DIR = PROJECT_ROOT / "monitoring"
 
-# Evidently Configuration
-EVIDENTLY_PORT = 8080
-EVIDENTLY_HOST = "0.0.0.0"
+# Configurazione dual-mode
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")  # local, cloud
+
+if ENVIRONMENT == "cloud":
+    # Configurazione per ambiente cloud (GCP)
+    EVIDENTLY_PORT = 8080
+    EVIDENTLY_HOST = "0.0.0.0"
+
+    # GCS Buckets per cloud
+    DATA_BUCKET = os.getenv("DATA_BUCKET", "mlops-breast-cancer-data")
+    MONITORING_BUCKET = os.getenv("MONITORING_BUCKET", "mlops-breast-cancer-monitoring")
+    MODELS_BUCKET = os.getenv("MODELS_BUCKET", "mlops-breast-cancer-models")
+
+    # Evidently Dashboard URL
+    EVIDENTLY_DASHBOARD_URL = (
+        "https://evidently-dashboard-403815755558.europe-west1.run.app"
+    )
+
+    print("🌤️  Configurazione Monitoring: AMBIENTE CLOUD")
+else:
+    # Configurazione per ambiente locale
+    EVIDENTLY_PORT = 8080
+    EVIDENTLY_HOST = "0.0.0.0"
+
+    # Path locali
+    DATA_BUCKET = "local"
+    MONITORING_BUCKET = "local"
+    MODELS_BUCKET = "local"
+
+    # Evidently Dashboard URL locale
+    EVIDENTLY_DASHBOARD_URL = "http://localhost:8080"
+
+    print("🏠  Configurazione Monitoring: AMBIENTE LOCALE")
 
 # Data Quality Thresholds
 DATA_QUALITY_THRESHOLDS = {

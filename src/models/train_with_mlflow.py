@@ -29,6 +29,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.svm import SVC
 
 from .mlflow_config import create_mlflow_run, setup_mlflow
+from src.api.config import is_cloud_environment, get_api_config
 
 # Configurazione logging
 logging.basicConfig(
@@ -49,11 +50,41 @@ def load_processed_data():
     """
     logger.info("=== CARICAMENTO DATI PROCESSATI ===")
 
-    train_path = PROCESSED_DATA_DIR / "train_set.csv"
-    test_path = PROCESSED_DATA_DIR / "test_set.csv"
+    if is_cloud_environment():
+        # Per cloud, caricare da GCS
+        api_config = get_api_config()
+        from google.cloud import storage
+        import tempfile
 
-    train_df = pd.read_csv(train_path)
-    test_df = pd.read_csv(test_path)
+        logger.info("🌤️  Caricamento dati da Cloud Storage")
+
+        # Download temporaneo dei dati
+        with tempfile.NamedTemporaryFile(
+            suffix=".csv", delete=False
+        ) as tmp_train, tempfile.NamedTemporaryFile(
+            suffix=".csv", delete=False
+        ) as tmp_test:
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(api_config["data_bucket"])
+
+            # Download train set
+            blob = bucket.blob("processed/train_set.csv")
+            blob.download_to_filename(tmp_train.name)
+            train_df = pd.read_csv(tmp_train.name)
+
+            # Download test set
+            blob = bucket.blob("processed/test_set.csv")
+            blob.download_to_filename(tmp_test.name)
+            test_df = pd.read_csv(tmp_test.name)
+
+    else:
+        # Per locale, caricare da file system
+        logger.info("🏠  Caricamento dati da File System Locale")
+        train_path = PROCESSED_DATA_DIR / "train_set.csv"
+        test_path = PROCESSED_DATA_DIR / "test_set.csv"
+
+        train_df = pd.read_csv(train_path)
+        test_df = pd.read_csv(test_path)
 
     # Separare features e target
     X_train = train_df.drop("target", axis=1)
