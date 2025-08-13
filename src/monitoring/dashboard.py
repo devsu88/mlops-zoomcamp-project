@@ -5,10 +5,15 @@ import os
 from pathlib import Path
 
 # Import configurazione dual-mode
-from src.monitoring.monitoring_config import (
+import sys
+import os
+from typing import Optional
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from monitoring.monitoring_config import (
     ENVIRONMENT,
     DATA_BUCKET,
-    MONITORING_BUCKET,
     MODELS_BUCKET,
     EVIDENTLY_DASHBOARD_URL,
 )
@@ -38,7 +43,7 @@ environment_info = "🌤️ Cloud" if ENVIRONMENT == "cloud" else "🏠 Locale"
 st.sidebar.success(f"Ambiente: {environment_info}")
 
 
-def load_data_dual_mode(file_path: str, bucket_name: str | None = None):
+def load_data_dual_mode(file_path: str, bucket_name: Optional[str] = None):
     """
     Carica dati da locale o GCS in base all'ambiente.
     """
@@ -81,25 +86,21 @@ def load_monitoring_data():
         if ENVIRONMENT == "cloud":
             # Carica dati da GCS
             data_df = load_data_dual_mode("processed/train_set.csv", DATA_BUCKET)
-            monitoring_df = load_data_dual_mode(
-                "monitoring/metrics.csv", MONITORING_BUCKET
-            )
         else:
             # Carica dati locali
             data_df = load_data_dual_mode("data/processed/train_set.csv")
-            monitoring_df = load_data_dual_mode("monitoring/metrics.csv")
 
-        return data_df, monitoring_df
+        return data_df
 
     except Exception as e:
         st.error(f"❌ Errore caricamento dati monitoring: {e}")
-        return None, None
+        return None
 
 
 st.header("📊 Data Quality Monitoring")
 
 # Carica dati reali
-data_df, monitoring_df = load_monitoring_data()
+data_df = load_monitoring_data()
 
 if data_df is not None:
     # Calcola metriche reali
@@ -417,7 +418,7 @@ st.sidebar.text(f"Environment: {ENVIRONMENT}")
 
 if ENVIRONMENT == "cloud":
     st.sidebar.text(f"Data Bucket: {DATA_BUCKET}")
-    st.sidebar.text(f"Monitoring Bucket: {MONITORING_BUCKET}")
+    # st.sidebar.text(f"Monitoring Bucket: {MONITORING_BUCKET}")  # Rimosso - non più utilizzato
     st.sidebar.text(f"Models Bucket: {MODELS_BUCKET}")
     st.sidebar.text(f"Dashboard URL: {EVIDENTLY_DASHBOARD_URL}")
 else:

@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir \
 # Copia tutti i file necessari per il funzionamento dual-mode
 COPY src/monitoring/ ./monitoring/
 COPY src/__init__.py ./__init__.py
+COPY src/monitoring/__init__.py ./monitoring/__init__.py
 
 # Esponi porta Streamlit
 EXPOSE 8080
