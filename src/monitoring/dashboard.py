@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import json
 import os
 from pathlib import Path
@@ -15,6 +16,7 @@ from monitoring.monitoring_config import (
     ENVIRONMENT,
     DATA_BUCKET,
     MODELS_BUCKET,
+    MONITORING_BUCKET,
     EVIDENTLY_DASHBOARD_URL,
 )
 
@@ -109,8 +111,26 @@ if data_df is not None:
     missing_pct = (missing_values / (total_rows * len(data_df.columns))) * 100
     data_quality_score = max(0, 100 - missing_pct)
 
-    # Calcola drift score (semplificato)
-    drift_score = 0.05  # Placeholder - in produzione si calcolerebbe con Evidently
+    # Calcola metriche reali aggiuntive
+    duplicate_rows = data_df.duplicated().sum()
+    duplicate_pct = (duplicate_rows / total_rows) * 100
+
+    # Calcola outliers semplificato (valori oltre 3 std)
+    outliers_count = 0
+    for col in data_df.select_dtypes(include=[np.number]).columns:
+        Q1 = data_df[col].quantile(0.25)
+        Q3 = data_df[col].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        outliers_count += (
+            (data_df[col] < lower_bound) | (data_df[col] > upper_bound)
+        ).sum()
+
+    outliers_pct = (
+        outliers_count
+        / (total_rows * len(data_df.select_dtypes(include=[np.number]).columns))
+    ) * 100
 
     col1, col2, col3 = st.columns(3)
 
@@ -122,201 +142,71 @@ if data_df is not None:
         )
 
     with col2:
-        drift_status = "✅ Stable" if drift_score < 0.1 else "⚠️ Minor Drift"
-        st.metric("Data Drift Detected", drift_status, f"{drift_score:.3f}")
+        duplicate_status = "✅ Clean" if duplicate_pct < 1 else "⚠️ Duplicates"
+        st.metric("Duplicate Rows", duplicate_status, f"{duplicate_pct:.1f}%")
 
     with col3:
-        # Performance del modello (placeholder)
-        model_performance = 87.3
-        st.metric("Model Performance", f"{model_performance:.1f}%", "↓ 1.2%")
+        outliers_status = "✅ Normal" if outliers_pct < 5 else "⚠️ Outliers"
+        st.metric(
+            "Outliers Detected",
+            outliers_status,
+            f"{outliers_count} ({outliers_pct:.1f}%)",
+        )
 
     # Mostra info sui dati
     st.info(f"📊 Dati caricati: {data_df.shape[0]} righe, {data_df.shape[1]} colonne")
 else:
-    st.warning("⚠️ Impossibile caricare i dati. Mostrando metriche simulate.")
+    st.error(
+        "❌ Impossibile caricare i dati. Verificare la connessione al bucket GCS e la disponibilità dei file."
+    )
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric("Data Quality Score", "95.2%", "↑ 2.1%")
+        st.metric("Data Quality Score", "N/A", "Dati non disponibili")
 
     with col2:
-        st.metric("Data Drift Detected", "No", "✅ Stable")
+        st.metric("Data Drift Detected", "N/A", "Dati non disponibili")
 
     with col3:
-        st.metric("Model Performance", "87.3%", "↓ 1.2%")
+        st.metric("Model Performance", "N/A", "Dati non disponibili")
 
-st.header("📈 Recent Metrics")
+st.header("📊 Dataset Overview")
 
 if data_df is not None:
-    # Genera grafico con dati reali (semplificato)
+    # Mostra statistiche descrittive del dataset
     try:
-        # Usa le prime 20 righe per il grafico
-        sample_data = data_df.head(20)
+        col1, col2 = st.columns(2)
 
-        # Calcola metriche per ogni riga (semplificato)
-        chart_data = pd.DataFrame(
-            {
-                "Sample": range(1, len(sample_data) + 1),
-                "Radius Mean": sample_data["radius_mean"]
-                if "radius_mean" in sample_data.columns
-                else [0.1] * len(sample_data),
-                "Area Mean": sample_data["area_mean"]
-                if "area_mean" in sample_data.columns
-                else [0.1] * len(sample_data),
-            }
-        )
+        with col1:
+            st.subheader("📈 Statistiche Numeriche")
+            numeric_cols = data_df.select_dtypes(include=[np.number]).columns
+            if len(numeric_cols) > 0:
+                st.dataframe(data_df[numeric_cols].describe())
+            else:
+                st.info("Nessuna colonna numerica trovata")
 
-        st.line_chart(chart_data.set_index("Sample"))
-        st.info("📊 Grafico generato con dati reali dal dataset")
-
+        with col2:
+            st.subheader("📋 Informazioni Dataset")
+            st.write(f"**Righe totali:** {data_df.shape[0]}")
+            st.write(f"**Colonne totali:** {data_df.shape[1]}")
+            st.write(f"**Colonne numeriche:** {len(numeric_cols)}")
+            st.write(
+                f"**Colonne categoriche:** {len(data_df.select_dtypes(include=['object']).columns)}"
+            )
+            st.write(
+                f"**Memoria utilizzata:** {data_df.memory_usage(deep=True).sum() / 1024:.1f} KB"
+            )
     except Exception as e:
-        st.warning(f"⚠️ Errore generazione grafico: {e}")
-        # Fallback a grafico simulato
-        chart_data = pd.DataFrame(
-            {
-                "Date": pd.date_range("2024-01-01", periods=30, freq="D"),
-                "Accuracy": [
-                    0.85,
-                    0.86,
-                    0.87,
-                    0.88,
-                    0.89,
-                    0.90,
-                    0.91,
-                    0.92,
-                    0.93,
-                    0.94,
-                    0.95,
-                    0.96,
-                    0.97,
-                    0.98,
-                    0.99,
-                    0.98,
-                    0.97,
-                    0.96,
-                    0.95,
-                    0.94,
-                    0.93,
-                    0.92,
-                    0.91,
-                    0.90,
-                    0.89,
-                    0.88,
-                    0.87,
-                    0.86,
-                    0.85,
-                    0.84,
-                ],
-                "Precision": [
-                    0.83,
-                    0.84,
-                    0.85,
-                    0.86,
-                    0.87,
-                    0.88,
-                    0.89,
-                    0.90,
-                    0.91,
-                    0.92,
-                    0.93,
-                    0.94,
-                    0.95,
-                    0.96,
-                    0.97,
-                    0.96,
-                    0.95,
-                    0.94,
-                    0.93,
-                    0.92,
-                    0.91,
-                    0.90,
-                    0.89,
-                    0.88,
-                    0.87,
-                    0.86,
-                    0.85,
-                    0.84,
-                    0.83,
-                    0.82,
-                ],
-            }
+        st.error(f"❌ Errore generazione overview: {e}")
+        st.info(
+            "📊 Impossibile visualizzare le statistiche. Verificare la struttura del dataset."
         )
-        st.line_chart(chart_data.set_index("Date"))
-        st.warning("⚠️ Grafico simulato (fallback)")
 else:
-    # Grafico simulato se non ci sono dati
-    chart_data = pd.DataFrame(
-        {
-            "Date": pd.date_range("2024-01-01", periods=30, freq="D"),
-            "Accuracy": [
-                0.85,
-                0.86,
-                0.87,
-                0.88,
-                0.89,
-                0.90,
-                0.91,
-                0.92,
-                0.93,
-                0.94,
-                0.95,
-                0.96,
-                0.97,
-                0.98,
-                0.99,
-                0.98,
-                0.97,
-                0.96,
-                0.95,
-                0.94,
-                0.93,
-                0.92,
-                0.91,
-                0.90,
-                0.89,
-                0.88,
-                0.87,
-                0.86,
-                0.85,
-                0.84,
-            ],
-            "Precision": [
-                0.83,
-                0.84,
-                0.85,
-                0.86,
-                0.87,
-                0.88,
-                0.89,
-                0.90,
-                0.91,
-                0.92,
-                0.93,
-                0.94,
-                0.95,
-                0.96,
-                0.97,
-                0.96,
-                0.95,
-                0.94,
-                0.93,
-                0.92,
-                0.91,
-                0.90,
-                0.89,
-                0.88,
-                0.87,
-                0.86,
-                0.85,
-                0.84,
-                0.83,
-                0.82,
-            ],
-        }
+    st.error("❌ Nessun dato disponibile per l'overview.")
+    st.info(
+        "📊 Verificare che i dati siano stati caricati correttamente dal bucket GCS."
     )
-    st.line_chart(chart_data.set_index("Date"))
-    st.warning("⚠️ Grafico simulato (nessun dato disponibile)")
 
 st.header("🔍 Data Drift Analysis")
 
@@ -365,52 +255,66 @@ if data_df is not None:
         st.info("📊 Drift analysis basata su dati reali")
 
     except Exception as e:
-        st.warning(f"⚠️ Errore calcolo drift: {e}")
-        # Fallback a tabella simulata
-        drift_data = pd.DataFrame(
-            {
-                "Feature": [
-                    "radius_mean",
-                    "perimeter_mean",
-                    "area_mean",
-                    "compactness_mean",
-                ],
-                "Drift Score": [0.02, 0.05, 0.03, 0.08],
-                "Status": ["✅ Stable", "⚠️ Minor Drift", "✅ Stable", "⚠️ Minor Drift"],
-            }
+        st.error(f"❌ Errore calcolo drift: {e}")
+        st.info(
+            "📊 Impossibile calcolare i drift scores. Verificare la struttura del dataset."
         )
-        st.table(drift_data)
-        st.warning("⚠️ Tabella simulata (fallback)")
 else:
-    # Tabella simulata se non ci sono dati
-    drift_data = pd.DataFrame(
-        {
-            "Feature": [
-                "radius_mean",
-                "perimeter_mean",
-                "area_mean",
-                "compactness_mean",
-            ],
-            "Drift Score": [0.02, 0.05, 0.03, 0.08],
-            "Status": ["✅ Stable", "⚠️ Minor Drift", "✅ Stable", "⚠️ Minor Drift"],
-        }
+    # Nessun dato disponibile
+    st.error("❌ Nessun dato disponibile per l'analisi del drift.")
+    st.info(
+        "📊 Verificare che i dati siano stati caricati correttamente dal bucket GCS."
     )
-    st.table(drift_data)
-    st.warning("⚠️ Tabella simulata (nessun dato disponibile)")
 
 st.header("📋 System Status")
 
-# Status dei servizi
-services = {
-    "MLflow Server": "🟢 Online",
-    "Prefect Server": "🟢 Online",
-    "API Service": "🟢 Online",
-    "Database": "🟢 Online",
-    "Storage": "🟢 Online",
-}
+# Status dei servizi - verifica reale se possibile
+if ENVIRONMENT == "cloud":
+    try:
+        # Verifica accesso ai bucket GCS
+        storage_client = storage.Client()
 
-for service, status in services.items():
-    st.text(f"{service}: {status}")
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            # Verifica bucket dati
+            try:
+                bucket = storage_client.bucket(DATA_BUCKET)
+                bucket.reload()
+                st.success(f"📊 Data Bucket: 🟢 Online")
+                st.caption(f"gs://{DATA_BUCKET}")
+            except Exception as e:
+                st.error(f"📊 Data Bucket: 🔴 Offline")
+                st.caption(f"Errore: {str(e)[:50]}...")
+
+        with col2:
+            # Verifica bucket modelli
+            try:
+                bucket = storage_client.bucket(MODELS_BUCKET)
+                bucket.reload()
+                st.success(f"🤖 Models Bucket: 🟢 Online")
+                st.caption(f"gs://{MODELS_BUCKET}")
+            except Exception as e:
+                st.error(f"🤖 Models Bucket: 🔴 Offline")
+                st.caption(f"Errore: {str(e)[:50]}...")
+
+        with col3:
+            # Verifica bucket monitoring
+            try:
+                bucket = storage_client.bucket(MONITORING_BUCKET)
+                bucket.reload()
+                st.success(f"🔍 Monitoring Bucket: 🟢 Online")
+                st.caption(f"gs://{MONITORING_BUCKET}")
+            except Exception as e:
+                st.error(f"🔍 Monitoring Bucket: 🔴 Offline")
+                st.caption(f"Errore: {str(e)[:50]}...")
+
+    except Exception as e:
+        st.warning("⚠️ Impossibile verificare lo stato dei servizi GCS")
+        st.caption(f"Errore: {str(e)}")
+else:
+    st.info("🏠 Ambiente locale - status servizi non verificabile")
+    st.caption("I servizi locali sono gestiti manualmente")
 
 st.sidebar.header("⚙️ Configuration")
 st.sidebar.text(f"Project: {project_id}")
