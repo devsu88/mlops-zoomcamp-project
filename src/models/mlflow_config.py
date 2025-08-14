@@ -36,6 +36,8 @@ def setup_mlflow():
     """
     Configura MLflow per experiment tracking e model registry.
     """
+    global ENVIRONMENT
+
     logger.info("=== SETUP MLFLOW ===")
     logger.info(f"Ambiente: {ENVIRONMENT}")
     logger.info(f"MLflow tracking URI: {MLFLOW_TRACKING_URI}")

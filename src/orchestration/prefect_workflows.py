@@ -61,9 +61,9 @@ else:
     GCS_AVAILABLE = False
 
 # Configurazione
-DATA_DIR = Path("data")
+DATA_DIR = Path(__file__).parent.parent.parent / "data"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
-RESULTS_DIR = Path("results")
+RESULTS_DIR = DATA_DIR / "results"
 MODELS_DIR = RESULTS_DIR / "models"
 RANDOM_STATE = 42
 
@@ -179,35 +179,65 @@ def setup_environment():
     }
 
 
-@task(name="download-dataset", retries=3, retry_delay_seconds=60)
-def download_dataset():
+@task(name="download-dataset", retries=2, retry_delay_seconds=30)
+def download_dataset_task():
     """
-    Download del dataset da Kaggle.
+    Download del dataset originale con dual-mode:
+    - Cloud: Carica da GCS bucket
+    - Locale: Carica da file locale
     """
     logger = get_run_logger()
-    logger.info("=== DOWNLOAD DATASET ===")
+    logger.info("=== DOWNLOAD DATASET (DUAL-MODE) ===")
 
     try:
-        from data.download_dataset import download_from_kaggle, verify_dataset
+        if is_cloud_environment():
+            logger.info("🌤️  Ambiente cloud - caricamento da GCS")
 
-        # Download dataset
-        dataset_info = download_from_kaggle()
-        if isinstance(dataset_info, tuple):
-            dataset_path, df = dataset_info
+            # Carica dataset da GCS
+            from google.cloud import storage
+            import tempfile
+
+            storage_client = storage.Client()
+            bucket_name = "mlops-breast-cancer-data"
+            blob_name = "raw/breast_cancer_dataset.csv"
+
+            bucket = storage_client.bucket(bucket_name)
+            blob = bucket.blob(blob_name)
+
+            # Crea directory temporanea
+            temp_dir = Path(tempfile.mkdtemp())
+            dataset_path = temp_dir / "breast_cancer_dataset.csv"
+
+            # Download da GCS
+            blob.download_to_filename(dataset_path)
+
+            logger.info(f"✅ Dataset scaricato da GCS: {dataset_path}")
+
+            # Verifica integrità
+            df = pd.read_csv(dataset_path)
+            logger.info(
+                f"📊 Dataset caricato: {df.shape[0]} righe, {df.shape[1]} colonne"
+            )
+
+            return str(dataset_path)
+
         else:
-            dataset_path = dataset_info
-            df = None
+            logger.info("🏠  Ambiente locale - caricamento da file locale")
 
-        logger.info(f"Dataset scaricato: {dataset_path}")
+            # Carica dataset da file locale
+            dataset_path = DATA_DIR / "raw" / "breast_cancer_dataset.csv"
 
-        # Verifica integrità
-        if df is not None:
-            is_valid = verify_dataset(df)
-            if not is_valid:
-                raise ValueError("Dataset non valido dopo il download")
+            if not dataset_path.exists():
+                raise FileNotFoundError(f"Dataset non trovato in: {dataset_path}")
 
-        logger.info("Dataset verificato con successo")
-        return str(dataset_path)
+            # Verifica integrità
+            df = pd.read_csv(dataset_path)
+            logger.info(
+                f"📊 Dataset caricato: {df.shape[0]} righe, {df.shape[1]} colonne"
+            )
+
+            logger.info(f"Dataset scaricato: {dataset_path}")
+            return str(dataset_path)
 
     except Exception as e:
         logger.error(f"Errore durante download dataset: {e}")
@@ -217,29 +247,67 @@ def download_dataset():
 @task(name="preprocess-data", retries=2, retry_delay_seconds=30)
 def preprocess_data_task(dataset_path: str):
     """
-    Preprocessing dei dati.
+    Preprocessing dei dati con dual-mode.
     """
     logger = get_run_logger()
-    logger.info("=== PREPROCESSING DATA ===")
+    logger.info("=== PREPROCESSING DATA (DUAL-MODE) ===")
 
     try:
         # Eseguire preprocessing
         preprocess_data()
 
-        # Verificare che i file siano stati creati
-        train_path = PROCESSED_DATA_DIR / "train_set.csv"
-        test_path = PROCESSED_DATA_DIR / "test_set.csv"
+        # Verificare che i file siano stati creati (dual-mode)
+        if is_cloud_environment():
+            logger.info("🌤️  Ambiente cloud - verifica file su GCS")
 
-        if not train_path.exists() or not test_path.exists():
-            raise FileNotFoundError(
-                "File di training/test non trovati dopo preprocessing"
-            )
+            # Verifica file su GCS
+            from google.cloud import storage
 
-        logger.info(f"Preprocessing completato")
-        logger.info(f"Train set: {train_path}")
-        logger.info(f"Test set: {test_path}")
+            storage_client = storage.Client()
+            bucket_name = "mlops-breast-cancer-data"
 
-        return {"train_path": str(train_path), "test_path": str(test_path)}
+            bucket = storage_client.bucket(bucket_name)
+
+            # Verifica file processed
+            train_blob = bucket.blob("processed/train_set.csv")
+            test_blob = bucket.blob("processed/test_set.csv")
+
+            if not train_blob.exists() or not test_blob.exists():
+                raise FileNotFoundError(
+                    "File di training/test non trovati su GCS dopo preprocessing"
+                )
+
+            logger.info("✅ File processed verificati su GCS")
+            logger.info(f"Train set: gs://{bucket_name}/processed/train_set.csv")
+            logger.info(f"Test set: gs://{bucket_name}/processed/test_set.csv")
+
+            return {
+                "train_path": f"gs://{bucket_name}/processed/train_set.csv",
+                "test_path": f"gs://{bucket_name}/processed/test_set.csv",
+                "environment": "cloud",
+            }
+
+        else:
+            logger.info("🏠  Ambiente locale - verifica file locali")
+
+            # Verifica file locali
+            train_path = PROCESSED_DATA_DIR / "train_set.csv"
+            test_path = PROCESSED_DATA_DIR / "test_set.csv"
+
+            if not train_path.exists() or not test_path.exists():
+                raise FileNotFoundError(
+                    "File di training/test non trovati localmente dopo preprocessing"
+                )
+
+            logger.info("✅ File processed verificati localmente")
+            logger.info(f"Train set: {train_path}")
+            logger.info(f"Test set: {test_path}")
+
+            return {
+                "train_path": str(train_path),
+                "test_path": str(test_path),
+                "environment": "local",
+            }
 
     except Exception as e:
         logger.error(f"Errore durante preprocessing: {e}")
@@ -338,8 +406,13 @@ def model_validation_task():
         # Eseguire validazione modello
         results = perform_comprehensive_validation()
 
+        # Caricare il modello per passarlo al task successivo
+        from models.model_validation import load_data_and_model
+
+        X_train, X_test, y_train, y_test, model = load_data_and_model()
+
         logger.info("Model validation completata")
-        return results
+        return {"validation_results": results, "model": model}
 
     except Exception as e:
         logger.error(f"Errore durante model validation: {e}")
@@ -347,7 +420,7 @@ def model_validation_task():
 
 
 @task(name="save-best-model", retries=2, retry_delay_seconds=30)
-def save_best_model_task(validation_results: dict):
+def save_best_model_task(validation_results: dict, model=None):
     """
     Salva il miglior modello per il deployment.
     """
@@ -355,9 +428,10 @@ def save_best_model_task(validation_results: dict):
     logger.info("=== SAVE BEST MODEL ===")
 
     try:
-        # Caricare il modello ottimizzato
-        model_path = RESULTS_DIR / "logistic_regression_gridsearch_tuned.joblib"
-        model = joblib.load(model_path)
+        # Se il modello non è passato, caricarlo da file
+        if model is None:
+            model_path = RESULTS_DIR / "logistic_regression_gridsearch_tuned.joblib"
+            model = joblib.load(model_path)
 
         # Salvare il modello per il deployment con dual-mode
         deployment_model_path = MODELS_DIR / "best_model.joblib"
@@ -381,14 +455,24 @@ def save_best_model_task(validation_results: dict):
                 "random_state": RANDOM_STATE,
             },
             "validation_metrics": {
-                "cv_recall_mean": validation_results["cv_results"]["recall"]["mean"],
-                "cv_f1_mean": validation_results["cv_results"]["f1"]["mean"],
-                "bootstrap_recall_mean": validation_results["bootstrap_stats"][
-                    "recall"
-                ]["mean"],
-                "bootstrap_f1_mean": validation_results["bootstrap_stats"]["f1"][
-                    "mean"
-                ],
+                "cv_recall_mean": validation_results.get("cv_results", {})
+                .get("recall", {})
+                .get("mean", "N/A"),
+                "cv_f1_mean": validation_results.get("cv_results", {})
+                .get("f1", {})
+                .get("mean", "N/A"),
+                "cv_accuracy_mean": validation_results.get("cv_results", {})
+                .get("accuracy", {})
+                .get("mean", "N/A"),
+                "cv_roc_auc_mean": validation_results.get("cv_results", {})
+                .get("roc_auc", {})
+                .get("mean", "N/A"),
+                "bootstrap_recall_mean": validation_results.get("bootstrap_stats", {})
+                .get("recall", {})
+                .get("mean", "N/A"),
+                "bootstrap_f1_mean": validation_results.get("bootstrap_stats", {})
+                .get("f1", {})
+                .get("mean", "N/A"),
             },
             "created_at": datetime.now().isoformat(),
             "model_path": str(deployment_model_path),
@@ -558,7 +642,7 @@ def ml_training_pipeline():
         logger.info("✅ Environment setup completato")
 
         # 2. Download dataset
-        dataset_path = download_dataset()
+        dataset_path = download_dataset_task()
         logger.info("✅ Dataset scaricato")
 
         # 3. Preprocessing
@@ -582,11 +666,13 @@ def ml_training_pipeline():
         logger.info("✅ Feature importance analysis completata")
 
         # 8. Model validation
-        validation_results = model_validation_task()
+        validation_task_result = model_validation_task()
+        validation_results = validation_task_result["validation_results"]
+        model = validation_task_result["model"]
         logger.info("✅ Model validation completata")
 
         # 9. Salvare miglior modello
-        model_info = save_best_model_task(validation_results)
+        model_info = save_best_model_task(validation_results, model)
         logger.info("✅ Miglior modello salvato")
 
         # 10. Generare report deployment
@@ -644,7 +730,7 @@ def data_preprocessing_pipeline():
         env_info = setup_environment()
 
         # Download dataset
-        dataset_path = download_dataset()
+        dataset_path = download_dataset_task()
 
         # Preprocessing
         preprocess_info = preprocess_data_task(dataset_path)
@@ -670,10 +756,12 @@ def model_validation_pipeline():
         env_info = setup_environment()
 
         # Validazione modello
-        validation_results = model_validation_task()
+        validation_task_result = model_validation_task()
+        validation_results = validation_task_result["validation_results"]
+        model = validation_task_result["model"]
 
         # Salvare miglior modello
-        model_info = save_best_model_task(validation_results)
+        model_info = save_best_model_task(validation_results, model)
 
         # Generare report
         deployment_report = generate_deployment_report_task(
@@ -696,11 +784,167 @@ def model_validation_pipeline():
         raise
 
 
+@flow(name="complete-mlops-pipeline", description="Pipeline MLOps completa end-to-end")
+def complete_mlops_pipeline():
+    """
+    Pipeline MLOps completa che ricostruisce tutto da zero:
+    1. 🗂️  Carica dataset originale da GCS
+    2. 🔧  Preprocessa i dati
+    3. 🤖  Addestra il modello
+    4. ✅  Valida il modello
+    5. 💾  Salva tutto su GCS
+    6. 📊  Genera report completi
+    """
+    logger = get_run_logger()
+    logger.info("🚀 INIZIO PIPELINE MLOPS COMPLETA END-TO-END")
+    logger.info("=" * 70)
+    logger.info("🎯 OBIETTIVO: Ricostruire tutto da zero partendo dal dataset originale")
+    logger.info("=" * 70)
+
+    try:
+        # FASE 1: SETUP AMBIENTE
+        logger.info("🔧 FASE 1: SETUP AMBIENTE")
+        env_info = setup_environment()
+        logger.info("✅ Environment setup completato")
+
+        # FASE 2: PREPROCESSING DATI
+        logger.info("🔧 FASE 2: PREPROCESSING DATI")
+        logger.info("   📥 Caricamento dataset originale da GCS...")
+        dataset_path = download_dataset_task()
+        logger.info("   ✅ Dataset caricato")
+
+        logger.info("   🔄 Preprocessing dati...")
+        preprocess_info = preprocess_data_task(dataset_path)
+        logger.info("   ✅ Preprocessing completato")
+        logger.info(f"   📊 Dati preprocessati: {preprocess_info}")
+
+        # FASE 3: TRAINING MODELLO
+        logger.info("🤖 FASE 3: TRAINING MODELLO")
+        logger.info("   🎯 Training baseline models...")
+        baseline_results = train_baseline_models_task()
+        logger.info("   ✅ Training baseline completato")
+
+        logger.info("   🚀 Training con MLflow...")
+        mlflow_results = train_mlflow_models_task()
+        logger.info("   ✅ Training MLflow completato")
+
+        logger.info("   ⚙️  Hyperparameter tuning...")
+        tuning_results = hyperparameter_tuning_task()
+        logger.info("   ✅ Hyperparameter tuning completato")
+
+        logger.info("   🔍 Feature importance analysis...")
+        feature_results = feature_importance_analysis_task()
+        logger.info("   ✅ Feature importance analysis completata")
+
+        # FASE 4: SALVATAGGIO BEST MODEL
+        logger.info("💾 FASE 4: SALVATAGGIO BEST MODEL")
+        logger.info("   💾 Salvataggio miglior modello...")
+
+        # Caricare il modello migliore per il salvataggio
+        best_model_path = RESULTS_DIR / "logistic_regression_gridsearch_tuned.joblib"
+        if best_model_path.exists():
+            best_model = joblib.load(best_model_path)
+            logger.info("   ✅ Modello migliore caricato per salvataggio")
+        else:
+            logger.error("   ❌ Modello migliore non trovato!")
+            raise FileNotFoundError(f"Modello non trovato: {best_model_path}")
+
+        # Salvare come best_model.joblib
+        model_info = save_best_model_task(
+            {}, best_model
+        )  # Passiamo un dict vuoto per validation_results
+        logger.info("   ✅ Miglior modello salvato come best_model.joblib")
+
+        # FASE 5: VALIDAZIONE MODELLO
+        logger.info("🔍 FASE 5: VALIDAZIONE MODELLO")
+        logger.info("   🔍 Validazione completa del modello...")
+        validation_task_result = model_validation_task()
+        validation_results = validation_task_result["validation_results"]
+        logger.info("   ✅ Model validation completata")
+
+        # FASE 6: DEPLOYMENT E REPORTING
+        logger.info("📊 FASE 6: DEPLOYMENT E REPORTING")
+        logger.info("   📊 Generazione deployment report...")
+        deployment_report = generate_deployment_report_task(
+            validation_results, model_info
+        )
+        logger.info("   ✅ Deployment report generato")
+
+        logger.info("   📤 Upload file ausiliari su GCS...")
+        auxiliary_upload = upload_auxiliary_files_task()
+        logger.info("   ✅ File ausiliari uploadati")
+
+        # RIEPILOGO FINALE
+        logger.info(f"\n{'='*70}")
+        logger.info("🏆 PIPELINE MLOPS COMPLETA COMPLETATA CON SUCCESSO!")
+        logger.info(f"{'='*70}")
+        logger.info("📊 PERFORMANCE FINALI:")
+        logger.info(
+            f"  🎯 Recall: {validation_results['cv_results']['recall']['mean']:.4f}"
+        )
+        logger.info(
+            f"  🎯 F1-Score: {validation_results['cv_results']['f1']['mean']:.4f}"
+        )
+        logger.info(
+            f"  🎯 Accuracy: {validation_results['cv_results']['accuracy']['mean']:.4f}"
+        )
+        logger.info(
+            f"  🎯 ROC-AUC: {validation_results['cv_results']['roc_auc']['mean']:.4f}"
+        )
+
+        logger.info(f"\n📁 FILE GENERATI E SALVATI SU GCS:")
+        logger.info(f"  🤖 Modello: {model_info['model_path']}")
+        logger.info(f"  📋 Metadata: {model_info['metadata_path']}")
+        logger.info(f"  📊 Report: {RESULTS_DIR}/deployment_report.json")
+        logger.info(f"  🔧 File ausiliari: {auxiliary_upload}")
+
+        logger.info(f"\n🌤️  STATO CLOUD:")
+        logger.info(f"  📦 Bucket modelli: mlops-breast-cancer-models")
+        logger.info(f"  📊 Bucket dati: mlops-breast-cancer-data")
+        logger.info(f"  🔍 Bucket monitoring: mlops-breast-cancer-monitoring")
+
+        logger.info(f"\n🎯 PRONTO PER DEPLOYMENT E MONITORING!")
+        logger.info(f"{'='*70}")
+
+        return {
+            "pipeline_status": "completed",
+            "environment_info": env_info,
+            "preprocessing_info": preprocess_info,
+            "training_results": {
+                "baseline": baseline_results,
+                "mlflow": mlflow_results,
+                "tuning": tuning_results,
+                "features": feature_results,
+            },
+            "validation_results": validation_results,
+            "model_info": model_info,
+            "deployment_report": deployment_report,
+            "auxiliary_upload": auxiliary_upload,
+        }
+
+    except Exception as e:
+        logger.error(f"❌ ERRORE CRITICO nella pipeline MLOps: {e}")
+        logger.error("🔄 La pipeline si è interrotta. Verificare i log per dettagli.")
+        raise
+
+
 def create_deployments():
     """
     Crea i deployment per i workflow.
     """
     logger.info("=== CREAZIONE DEPLOYMENTS ===")
+
+    # Deployment per pipeline completa MLOps (giornaliera)
+    deployment_complete = Deployment.build_from_flow(
+        flow=complete_mlops_pipeline,
+        name="complete-mlops-pipeline-daily",
+        version="1.0.0",
+        work_queue_name="mlops-complete",
+        schedule=CronSchedule(cron="0 2 * * *"),  # Ogni giorno alle 2:00
+        storage=storage,
+    )
+    deployment_complete.apply()
+    logger.info("✅ Deployment pipeline completa MLOps creato")
 
     # Deployment per pipeline completa (giornaliera)
     deployment_full = Deployment.build_from_flow(
@@ -708,7 +952,7 @@ def create_deployments():
         name="ml-training-pipeline-daily",
         version="1.0.0",
         work_queue_name="ml-training",
-        schedule=CronSchedule(cron="0 2 * * *"),  # Ogni giorno alle 2:00
+        schedule=CronSchedule(cron="0 3 * * *"),  # Ogni giorno alle 3:00
         storage=storage,
     )
     deployment_full.apply()
@@ -719,7 +963,7 @@ def create_deployments():
         name="data-preprocessing-weekly",
         version="1.0.0",
         work_queue_name="data-processing",
-        schedule=CronSchedule(cron="0 3 * * 1"),  # Ogni lunedì alle 3:00
+        schedule=CronSchedule(cron="0 4 * * 1"),  # Ogni lunedì alle 4:00
         storage=storage,
     )
     deployment_preprocess.apply()
@@ -730,7 +974,7 @@ def create_deployments():
         name="model-validation-daily",
         version="1.0.0",
         work_queue_name="model-validation",
-        schedule=CronSchedule(cron="0 4 * * *"),  # Ogni giorno alle 4:00
+        schedule=CronSchedule(cron="0 5 * * *"),  # Ogni giorno alle 5:00
         storage=storage,
     )
     deployment_validation.apply()

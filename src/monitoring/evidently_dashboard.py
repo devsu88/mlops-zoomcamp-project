@@ -52,13 +52,31 @@ class EvidentlyDashboard:
     def load_data_for_dashboard(self):
         """Carica i dati necessari per il dashboard"""
         try:
+            # Percorsi locali
+            reference_data_path = (
+                Path(__file__).parent.parent.parent
+                / "data"
+                / "processed"
+                / "train_set.csv"
+            )
+            current_data_path = (
+                Path(__file__).parent.parent.parent
+                / "data"
+                / "processed"
+                / "test_set.csv"
+            )
+            scaler_path = (
+                Path(__file__).parent.parent.parent
+                / "data"
+                / "processed"
+                / "scaler.joblib"
+            )
+
             # Carica dati di riferimento
-            reference_data_path = Path("data/processed/train_set.csv")
             reference_data = pd.read_csv(reference_data_path)
             logger.info(f"✓ Dati di riferimento caricati: {reference_data.shape}")
 
             # Carica dati attuali (per ora usa test set)
-            current_data_path = Path("data/processed/test_set.csv")
             current_data = pd.read_csv(current_data_path)
             logger.info(f"✓ Dati attuali caricati: {current_data.shape}")
 
@@ -66,8 +84,6 @@ class EvidentlyDashboard:
             model_path = Path(
                 "mlruns/345803254500172789/c0edfdfcb43c46758634223da7d1faa5/artifacts/logistic_regression/model.pkl"
             )
-            scaler_path = Path("data/processed/scaler.joblib")
-
             # Per ora usiamo i dati senza predizioni per evitare problemi con Evidently
             logger.info(f"✓ Usando dati senza predizioni per dashboard")
             return reference_data, current_data

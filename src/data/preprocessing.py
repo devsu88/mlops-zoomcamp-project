@@ -21,9 +21,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configurazione
-LOCAL_DATA_DIR = Path("data")
-PROCESSED_DATA_DIR = Path("data/processed")
+# Configurazione percorsi
+LOCAL_DATA_DIR = Path(__file__).parent.parent.parent / "data"
+PROCESSED_DATA_DIR = LOCAL_DATA_DIR / "processed"
 BUCKET_NAME = "mlops-breast-cancer-data"
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
@@ -348,7 +348,7 @@ def main():
 
     try:
         # 1. Caricamento dataset
-        data_path = LOCAL_DATA_DIR / "breast_cancer_dataset.csv"
+        data_path = LOCAL_DATA_DIR / "raw" / "breast_cancer_dataset.csv"
         df = load_raw_dataset(data_path)
 
         # 2. Pulizia dataset

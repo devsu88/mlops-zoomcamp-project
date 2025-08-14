@@ -36,10 +36,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configurazione
-PROCESSED_DATA_DIR = Path("data/processed")
-MODELS_DIR = Path("models")
-RESULTS_DIR = Path("results")
+# Configurazione percorsi
+PROCESSED_DATA_DIR = Path(__file__).parent.parent.parent / "data" / "processed"
+MODELS_DIR = Path(__file__).parent.parent.parent / "data" / "results" / "models"
+RESULTS_DIR = Path(__file__).parent.parent.parent / "data" / "results"
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
 CV_FOLDS = 5

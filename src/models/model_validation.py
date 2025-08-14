@@ -6,10 +6,13 @@ Include cross-validation, bootstrap validation, learning curves e analisi degli 
 
 import json
 import logging
+import os
+import tempfile
 from pathlib import Path
 
 import joblib
 import matplotlib.pyplot as plt
+from typing import Optional
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -41,12 +44,102 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configurazione
-PROCESSED_DATA_DIR = Path("data/processed")
-RESULTS_DIR = Path("results")
+# Configurazione dual-mode
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
+MODEL_BUCKET = os.getenv("MODEL_BUCKET", "mlops-breast-cancer-models")
+DATA_BUCKET = os.getenv("DATA_BUCKET", "mlops-breast-cancer-data")
+
+# Configurazione percorsi
+PROCESSED_DATA_DIR = Path(__file__).parent.parent.parent / "data" / "processed"
+RESULTS_DIR = Path(__file__).parent.parent.parent / "data" / "results"
 PLOTS_DIR = RESULTS_DIR / "plots"
 RANDOM_STATE = 42
 CV_FOLDS = 5
+
+# Flag per GCS
+GCS_AVAILABLE = False
+if ENVIRONMENT == "cloud":
+    try:
+        from google.cloud import storage
+
+        GCS_AVAILABLE = True
+        logger.info("✅ Google Cloud Storage disponibile")
+    except ImportError:
+        logger.warning("⚠️ Google Cloud Storage non disponibile")
+
+
+def load_data_dual_mode(file_path: str, bucket_name: Optional[str] = None):
+    """
+    Carica dati da locale o GCS in base all'ambiente.
+    """
+    try:
+        if ENVIRONMENT == "cloud" and GCS_AVAILABLE and bucket_name:
+            # Caricamento da GCS
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(bucket_name)
+
+            # Download temporaneo
+            with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp_file:
+                blob = bucket.blob(file_path)
+                blob.download_to_filename(tmp_file.name)
+                df = pd.read_csv(tmp_file.name)
+                os.unlink(tmp_file.name)  # Rimuovi file temporaneo
+
+            logger.info(f"📥 Dati caricati da GCS: gs://{bucket_name}/{file_path}")
+            return df
+        else:
+            # Caricamento locale - usa percorso assoluto dalla root del progetto
+            project_root = Path(__file__).parent.parent.parent
+            local_path = project_root / file_path
+            if local_path.exists():
+                df = pd.read_csv(local_path)
+                logger.info(f"📁 Dati caricati da locale: {local_path}")
+                return df
+            else:
+                logger.error(f"❌ File non trovato: {local_path}")
+                return None
+
+    except Exception as e:
+        logger.error(f"❌ Errore caricamento dati: {e}")
+        return None
+
+
+def load_model_dual_mode(file_path: str, bucket_name: Optional[str] = None):
+    """
+    Carica modello da locale o GCS in base all'ambiente.
+    """
+    try:
+        if ENVIRONMENT == "cloud" and GCS_AVAILABLE and bucket_name:
+            # Caricamento da GCS
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(bucket_name)
+
+            # Download temporaneo
+            with tempfile.NamedTemporaryFile(
+                suffix=".joblib", delete=False
+            ) as tmp_file:
+                blob = bucket.blob(file_path)
+                blob.download_to_filename(tmp_file.name)
+                model = joblib.load(tmp_file.name)
+                os.unlink(tmp_file.name)  # Rimuovi file temporaneo
+
+            logger.info(f"📥 Modello caricato da GCS: gs://{bucket_name}/{file_path}")
+            return model
+        else:
+            # Caricamento locale - usa percorso assoluto dalla root del progetto
+            project_root = Path(__file__).parent.parent.parent
+            local_path = project_root / file_path
+            if local_path.exists():
+                model = joblib.load(local_path)
+                logger.info(f"📁 Modello caricato da locale: {local_path}")
+                return model
+            else:
+                logger.error(f"❌ File modello non trovato: {local_path}")
+                return None
+
+    except Exception as e:
+        logger.error(f"❌ Errore caricamento modello: {e}")
+        return None
 
 
 def load_data_and_model():
@@ -54,26 +147,31 @@ def load_data_and_model():
     Carica i dati processati e il modello ottimizzato.
     """
     logger.info("=== CARICAMENTO DATI E MODELLO ===")
+    logger.info(f"🌤️ Ambiente: {ENVIRONMENT}")
 
     # Caricare dati
-    train_path = PROCESSED_DATA_DIR / "train_set.csv"
-    test_path = PROCESSED_DATA_DIR / "test_set.csv"
+    if ENVIRONMENT == "cloud":
+        train_df = load_data_dual_mode("train_set.csv", DATA_BUCKET)
+        test_df = load_data_dual_mode("test_set.csv", DATA_BUCKET)
+        model = load_model_dual_mode("best_model.joblib", MODEL_BUCKET)
+    else:
+        train_df = load_data_dual_mode("data/processed/train_set.csv", DATA_BUCKET)
+        test_df = load_data_dual_mode("data/processed/test_set.csv", DATA_BUCKET)
+        model = load_model_dual_mode(
+            "data/results/models/best_model.joblib", MODEL_BUCKET
+        )
 
-    train_df = pd.read_csv(train_path)
-    test_df = pd.read_csv(test_path)
+    if train_df is None or test_df is None or model is None:
+        raise FileNotFoundError("Impossibile caricare dati o modello")
 
     X_train = train_df.drop("target", axis=1)
     y_train = train_df["target"]
     X_test = test_df.drop("target", axis=1)
     y_test = test_df["target"]
 
-    # Caricare modello ottimizzato
-    model_path = RESULTS_DIR / "logistic_regression_gridsearch_tuned.joblib"
-    model = joblib.load(model_path)
-
     logger.info(f"Train set: {X_train.shape}")
     logger.info(f"Test set: {X_test.shape}")
-    logger.info(f"Modello caricato: {model_path}")
+    logger.info(f"Modello caricato con successo")
 
     return X_train, X_test, y_train, y_test, model
 

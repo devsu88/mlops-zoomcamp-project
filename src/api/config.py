@@ -39,12 +39,29 @@ else:
     MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
     MODEL_BUCKET = os.getenv("MODEL_BUCKET", "local")
 
-    # Path per locale
-    MODEL_PATH = str(Path("results/models/best_model.joblib"))
-    METADATA_PATH = str(Path("results/models/model_metadata.json"))
-    SCALER_PATH = str(Path("data/processed/scaler.joblib"))
+    # Percorsi locali
+    MODEL_PATH = str(
+        Path(__file__).parent.parent.parent
+        / "data"
+        / "results"
+        / "models"
+        / "best_model.joblib"
+    )
+    METADATA_PATH = str(
+        Path(__file__).parent.parent.parent
+        / "data"
+        / "results"
+        / "models"
+        / "model_metadata.json"
+    )
+    SCALER_PATH = str(
+        Path(__file__).parent.parent.parent / "data" / "processed" / "scaler.joblib"
+    )
     PREPROCESSING_METADATA_PATH = str(
-        Path("data/processed/preprocessing_metadata.json")
+        Path(__file__).parent.parent.parent
+        / "data"
+        / "processed"
+        / "preprocessing_metadata.json"
     )
 
     logger.info("🏠  Configurazione API: AMBIENTE LOCALE")

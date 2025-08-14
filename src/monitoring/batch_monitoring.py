@@ -195,7 +195,9 @@ def save_monitoring_results(results: Dict[str, Any]):
         results["environment"] = ENVIRONMENT
 
         # Salva localmente
-        results_path = Path("monitoring/batch_results.json")
+        results_path = (
+            Path(__file__).parent.parent.parent / "monitoring" / "batch_results.json"
+        )
         results_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(results_path, "w") as f:

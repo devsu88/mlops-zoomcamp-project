@@ -69,7 +69,12 @@ def start_all_workers():
     """
     logger.info("=== AVVIO WORKERS PREFECT ===")
 
-    work_queues = ["ml-training", "data-processing", "model-validation"]
+    work_queues = [
+        "ml-training",
+        "data-processing",
+        "model-validation",
+        "mlops-complete",
+    ]
 
     for queue_name in work_queues:
         worker_info = start_worker(queue_name)

@@ -29,7 +29,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.svm import SVC
 
 from .mlflow_config import create_mlflow_run, setup_mlflow
-from src.api.config import is_cloud_environment, get_api_config
+from api.config import is_cloud_environment, get_api_config
 
 # Configurazione logging
 logging.basicConfig(
@@ -37,9 +37,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configurazione
-PROCESSED_DATA_DIR = Path("data/processed")
-RESULTS_DIR = Path("results")
+# Configurazione percorsi
+PROCESSED_DATA_DIR = Path(__file__).parent.parent.parent / "data" / "processed"
+RESULTS_DIR = Path(__file__).parent.parent.parent / "data" / "results"
 RANDOM_STATE = 42
 CV_FOLDS = 5
 

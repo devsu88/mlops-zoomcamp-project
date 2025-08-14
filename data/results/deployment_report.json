@@ -1,7 +1,7 @@
 {
   "deployment_info": {
-    "timestamp": "2025-08-06T10:21:59.744227",
-    "model_path": "results/models/best_model.joblib",
+    "timestamp": "2025-08-13T18:14:07.766492",
+    "model_path": "/home/salvatoreucchino/Scrivania/mlops-zoomcamp-project/data/results/models/best_model.joblib",
     "model_type": "LogisticRegression",
     "version": "1.0.0"
   },
