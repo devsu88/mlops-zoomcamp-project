@@ -22,8 +22,12 @@ logger = logging.getLogger(__name__)
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")  # local, cloud
 
 if ENVIRONMENT == "cloud":
-    MLFLOW_TRACKING_URI = "https://mlflow-server-403815755558.europe-west1.run.app"
-    MLFLOW_REGISTRY_URI = "https://mlflow-server-403815755558.europe-west1.run.app"
+    MLFLOW_TRACKING_URI = os.getenv(
+        "MLFLOW_TRACKING_URI", "https://mlflow-server-wrfh4ve2na-ew.a.run.app"
+    )
+    MLFLOW_REGISTRY_URI = os.getenv(
+        "MLFLOW_TRACKING_URI", "https://mlflow-server-wrfh4ve2na-ew.a.run.app"
+    )
 else:
     MLFLOW_TRACKING_URI = "http://localhost:5000"  # Per sviluppo locale
     MLFLOW_REGISTRY_URI = "sqlite:///mlflow.db"  # Per sviluppo locale

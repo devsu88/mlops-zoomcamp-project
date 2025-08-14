@@ -22,6 +22,13 @@ starlette>=0.27.0,<0.28.0
 # Evidently for monitoring
 evidently==0.4.0
 
+# Streamlit for dashboards
+streamlit==1.28.0
+
+# Flask for batch monitoring
+flask==2.3.3
+gunicorn==21.2.0
+
 # Google Cloud
 google-cloud-storage==2.10.0
 google-cloud-logging==3.8.0

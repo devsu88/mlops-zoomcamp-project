@@ -75,11 +75,11 @@ if is_cloud_environment():
     # Per cloud, usare storage remoto (GCS)
     from prefect.filesystems import GCS
 
-    storage = GCS(bucket_path=prefect_config["project_name"])
+    prefect_storage = GCS(bucket_path=prefect_config["project_name"])
     logger.info(f"🌤️  Storage Prefect: GCS Cloud")
 else:
     # Per locale, usare file system locale
-    storage = LocalFileSystem(basepath=str(Path.cwd()))
+    prefect_storage = LocalFileSystem(basepath=str(Path.cwd()))
     logger.info(f"🏠  Storage Prefect: File System Locale")
 
 
@@ -97,6 +97,8 @@ def save_model_dual_mode(model, file_path: Path, bucket_name: str | None = None)
     # Salvataggio su GCS se in cloud
     if is_cloud_environment() and GCS_AVAILABLE and bucket_name:
         try:
+            from google.cloud import storage
+
             storage_client = storage.Client()
             bucket = storage_client.bucket(bucket_name)
 
@@ -134,6 +136,8 @@ def save_metadata_dual_mode(
     # Salvataggio su GCS se in cloud
     if is_cloud_environment() and GCS_AVAILABLE and bucket_name:
         try:
+            from google.cloud import storage
+
             storage_client = storage.Client()
             bucket = storage_client.bucket(bucket_name)
 
@@ -531,15 +535,13 @@ def upload_auxiliary_files_task():
                     storage_client = storage.Client()
                     bucket = storage_client.bucket(bucket_name)
 
-                    # Upload del file
-                    blob = bucket.blob(str(local_path.relative_to(Path.cwd())))
+                    # Upload del file - usare il path relativo direttamente
+                    blob = bucket.blob(file_path)
                     blob.upload_from_filename(str(local_path))
 
-                    uploaded_files.append(
-                        f"gs://{bucket_name}/{local_path.relative_to(Path.cwd())}"
-                    )
+                    uploaded_files.append(f"gs://{bucket_name}/{file_path}")
                     logger.info(
-                        f"🌤️  File caricato: {file_path} -> gs://{bucket_name}/{local_path.relative_to(Path.cwd())}"
+                        f"🌤️  File caricato: {file_path} -> gs://{bucket_name}/{file_path}"
                     )
 
                 except Exception as e:
@@ -609,7 +611,7 @@ def generate_deployment_report_task(validation_results: dict, model_info: dict):
 
         # Bucket per risultati (da configurazione)
         results_bucket = (
-            "mlops-breast-cancer-artifacts" if is_cloud_environment() else None
+            "mlops-breast-cancer-monitoring" if is_cloud_environment() else None
         )
 
         # Salvataggio dual-mode del report
@@ -896,6 +898,9 @@ def complete_mlops_pipeline():
         logger.info(f"  🤖 Modello: {model_info['model_path']}")
         logger.info(f"  📋 Metadata: {model_info['metadata_path']}")
         logger.info(f"  📊 Report: {RESULTS_DIR}/deployment_report.json")
+        logger.info(
+            f"  📊 Report Cloud: gs://mlops-breast-cancer-monitoring/deployment_report.json"
+        )
         logger.info(f"  🔧 File ausiliari: {auxiliary_upload}")
 
         logger.info(f"\n🌤️  STATO CLOUD:")

@@ -1,0 +1,42 @@
+###
+### A complete description of a Prefect Deployment for flow 'complete-mlops-pipeline'
+###
+name: cloud-pipeline-deployment
+description: Pipeline MLOps completa end-to-end
+version: 95b338bb717d10127d6958e693e1f765
+# The work queue that will handle this deployment's runs
+work_queue_name: mlops-complete
+work_pool_name: null
+tags: []
+parameters: {}
+schedule: null
+is_schedule_active: null
+infra_overrides: {}
+infrastructure:
+  type: process
+  env: {}
+  labels: {}
+  name: null
+  command: null
+  stream_output: true
+  working_dir: null
+  block_type_slug: process
+  _block_type_slug: process
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: complete-mlops-pipeline
+manifest_path: null
+storage: null
+path: /home/salvatoreucchino/Scrivania/mlops-zoomcamp-project
+entrypoint: src/orchestration/prefect_workflows.py:complete_mlops_pipeline
+parameter_openapi_schema:
+  title: Parameters
+  type: object
+  properties: {}
+  required: null
+  definitions: null
+timestamp: '2025-08-14T15:17:04.813140+00:00'
+triggers: []
+enforce_parameter_schema: null

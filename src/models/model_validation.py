@@ -151,9 +151,11 @@ def load_data_and_model():
 
     # Caricare dati
     if ENVIRONMENT == "cloud":
-        train_df = load_data_dual_mode("train_set.csv", DATA_BUCKET)
-        test_df = load_data_dual_mode("test_set.csv", DATA_BUCKET)
-        model = load_model_dual_mode("best_model.joblib", MODEL_BUCKET)
+        train_df = load_data_dual_mode("processed/train_set.csv", DATA_BUCKET)
+        test_df = load_data_dual_mode("processed/test_set.csv", DATA_BUCKET)
+        model = load_model_dual_mode(
+            "data/results/models/best_model.joblib", MODEL_BUCKET
+        )
     else:
         train_df = load_data_dual_mode("data/processed/train_set.csv", DATA_BUCKET)
         test_df = load_data_dual_mode("data/processed/test_set.csv", DATA_BUCKET)

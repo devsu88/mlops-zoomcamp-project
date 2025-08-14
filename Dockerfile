@@ -20,11 +20,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia il codice sorgente
-COPY . .
-
-# Crea directory necessarie
-RUN mkdir -p data/raw data/processed models monitoring/reports monitoring/dashboards monitoring/alerts monitoring/logs
+# Copia solo i moduli necessari per l'API
+COPY src/api/ ./src/api/
+COPY src/models/ ./src/models/
+COPY src/monitoring/ ./src/monitoring/
+COPY src/__init__.py ./src/__init__.py
 
 # Esponi la porta per l'API
 EXPOSE 8000
