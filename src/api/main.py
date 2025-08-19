@@ -56,28 +56,30 @@ class PredictionRequest(BaseModel):
     features: Dict[str, float] = Field(
         ...,
         description="Features del paziente per la predizione",
-        example={
-            "radius_mean": 17.99,
-            "texture_mean": 10.38,
-            "perimeter_mean": 122.8,
-            "area_mean": 1001.0,
-            "smoothness_mean": 0.1184,
-            "compactness_mean": 0.2776,
-            "concavity_mean": 0.3001,
-            "concave_points_mean": 0.1471,
-            "symmetry_mean": 0.2419,
-            "fractal_dimension_mean": 0.07871,
-            "radius_se": 1.095,
-            "texture_se": 0.9053,
-            "perimeter_se": 8.589,
-            "area_se": 153.4,
-            "smoothness_se": 0.006399,
-            "compactness_se": 0.04904,
-            "concavity_se": 0.05373,
-            "concave_points_se": 0.01587,
-            "symmetry_se": 0.03003,
-            "fractal_dimension_se": 0.006193,
-        },
+        examples=[
+            {
+                "radius_mean": 17.99,
+                "texture_mean": 10.38,
+                "perimeter_mean": 122.8,
+                "area_mean": 1001.0,
+                "smoothness_mean": 0.1184,
+                "compactness_mean": 0.2776,
+                "concavity_mean": 0.3001,
+                "concave_points_mean": 0.1471,
+                "symmetry_mean": 0.2419,
+                "fractal_dimension_mean": 0.07871,
+                "radius_se": 1.095,
+                "texture_se": 0.9053,
+                "perimeter_se": 8.589,
+                "area_se": 153.4,
+                "smoothness_se": 0.006399,
+                "compactness_se": 0.04904,
+                "concavity_se": 0.05373,
+                "concave_points_se": 0.01587,
+                "symmetry_se": 0.03003,
+                "fractal_dimension_se": 0.006193,
+            }
+        ],
     )
 
 
@@ -108,7 +110,7 @@ class BatchPredictionRequest(BaseModel):
     predictions: List[Dict[str, float]] = Field(
         ...,
         description="Lista di features per predizioni multiple",
-        example=[
+        examples=[
             {
                 "radius_mean": 17.99,
                 "texture_mean": 10.38,
