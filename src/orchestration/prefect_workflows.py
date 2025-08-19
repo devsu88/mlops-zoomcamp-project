@@ -79,7 +79,7 @@ if is_cloud_environment():
     logger.info(f"🌤️  Storage Prefect: GCS Cloud")
 else:
     # Per locale, usare file system locale
-    prefect_storage = LocalFileSystem(basepath=str(Path.cwd()))
+    prefect_storage = LocalFileSystem(basepath=str(Path.cwd()))  # type: ignore[assignment]
     logger.info(f"🏠  Storage Prefect: File System Locale")
 
 
