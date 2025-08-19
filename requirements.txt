@@ -48,6 +48,7 @@ ipykernel==6.25.2
 
 # Additional utilities
 requests==2.31.0
+types-requests==2.31.0.20240125
 python-dotenv==1.0.0
 kaggle==1.7.4.5
 
