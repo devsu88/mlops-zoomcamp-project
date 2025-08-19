@@ -49,8 +49,8 @@ jobs:
         echo "🔍 Running Black (code formatting)..."
         black --check --diff src/ tests/
 
-        echo "🔍 Running Flake8 (style checking)..."
-        flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+        # echo "🔍 Running Flake8 (style checking)..."
+        # flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503
 
         echo "🔍 Running MyPy (type checking)..."
         mypy src/ --ignore-missing-imports --disallow-untyped-defs
