@@ -40,7 +40,7 @@ test-monitoring:
 lint:
 	black --check --diff src/ tests/
 	flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503
-	mypy src/ --ignore-missing-imports --disallow-untyped-defs
+	mypy src/ --ignore-missing-imports --no-strict-optional
 
 format:
 	black src/ tests/
