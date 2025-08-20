@@ -124,9 +124,11 @@ jobs:
     - name: Test model training
       run: |
         echo "🤖 Testing model training..."
+        export PYTHONPATH="${PYTHONPATH}:${GITHUB_WORKSPACE}/src"
         python -c "
-        from src.models.train_baseline import main as baseline_main
-        from src.models.train_with_mlflow import main as mlflow_main
+        from api.config import is_cloud_environment, get_api_config
+        from models.train_baseline import main as baseline_main
+        from models.train_with_mlflow import main as mlflow_main
         print('✅ Model training imports successful')
         "
 
@@ -193,11 +195,12 @@ jobs:
     - name: Test monitoring components
       run: |
         echo "📊 Testing monitoring components..."
+        export PYTHONPATH="${PYTHONPATH}:${GITHUB_WORKSPACE}/src"
         python -c "
-        from src.monitoring.monitoring_config import ensure_directories, get_monitoring_paths
-        from src.monitoring.data_quality import DataQualityMonitor
-        from src.monitoring.drift_detection import DriftDetector
-        from src.monitoring.performance_monitoring import PerformanceMonitor
+        from monitoring.monitoring_config import ensure_directories, get_monitoring_paths
+        from monitoring.data_quality import DataQualityMonitor
+        from monitoring.drift_detection import DriftDetector
+        from monitoring.performance_monitoring import PerformanceMonitor
         print('✅ Monitoring components imports successful')
 
         # Test configuration
