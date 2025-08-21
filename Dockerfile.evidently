@@ -2,6 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Assicura che i moduli in /app siano importabili
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+
 # Installa solo le dipendenze essenziali per Evidently + Streamlit
 RUN pip install --no-cache-dir \
     evidently==0.4.0 \

@@ -20,6 +20,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Assicura che i moduli in /app/src siano importabili
+ENV PYTHONPATH="/app/src:${PYTHONPATH}"
+
 # Copia solo i moduli necessari per l'API
 COPY src/api/ ./src/api/
 COPY src/models/ ./src/models/
