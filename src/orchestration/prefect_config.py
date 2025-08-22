@@ -22,10 +22,10 @@ if ENVIRONMENT == "cloud":
     PREFECT_API_URL = "https://prefect-server-403815755558.europe-west1.run.app/api"
     PREFECT_DASHBOARD_URL = "https://prefect-server-403815755558.europe-west1.run.app"
 
-    # Database cloud (PostgreSQL su Cloud SQL)
+    # Database cloud (SQLite nel container)
     PREFECT_DATABASE_URL = os.getenv(
         "PREFECT_DATABASE_URL",
-        "postgresql://mlflow_user:${password}@${host}:5432/prefect",
+        "sqlite:///prefect.db",
     )
 
     logger.info("🌤️  Configurazione Prefect: AMBIENTE CLOUD")

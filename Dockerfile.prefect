@@ -30,12 +30,12 @@ COPY src/models/ ./src/models/
 COPY src/monitoring/ ./src/monitoring/
 COPY src/__init__.py ./src/__init__.py
 
-# Esponi porta Prefect
-EXPOSE 4200
+# Esponi porte Prefect e API
+EXPOSE 4200 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:4200/api/health || exit 1
+# Health check per entrambi i servizi
+HEALTHCHECK --interval=30s --timeout=30s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:4200/api/health && curl -f http://localhost:8000/health || exit 1
 
-# Comando di avvio Prefect
-CMD ["prefect", "server", "start", "--host", "0.0.0.0", "--port", "4200"]
+# Comando di avvio Prefect + API
+CMD ["python", "src/orchestration/prefect_server_with_api.py"]
