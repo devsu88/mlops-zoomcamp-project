@@ -21,12 +21,7 @@ resource "google_cloud_run_service" "prefect" {
 
         ports {
           container_port = 4200
-          name           = "prefect"
-        }
-
-        ports {
-          container_port = 8000
-          name           = "api"
+          name           = "http1"
         }
       }
     }

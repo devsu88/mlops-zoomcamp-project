@@ -26,11 +26,13 @@ if ENVIRONMENT == "cloud":
     MONITORING_BUCKET = os.getenv("MONITORING_BUCKET", "mlops-breast-cancer-monitoring")
 
     # Path per cloud (GCS)
-    MODEL_PATH = "gs://mlops-breast-cancer-models/best_model.joblib"
-    METADATA_PATH = "gs://mlops-breast-cancer-models/model_metadata.json"
-    SCALER_PATH = "gs://mlops-breast-cancer-models/scaler.joblib"
+    MODEL_PATH = "gs://mlops-breast-cancer-models/data/results/models/best_model.joblib"
+    METADATA_PATH = (
+        "gs://mlops-breast-cancer-models/data/results/models/model_metadata.json"
+    )
+    SCALER_PATH = "gs://mlops-breast-cancer-models/data/processed/scaler.joblib"
     PREPROCESSING_METADATA_PATH = (
-        "gs://mlops-breast-cancer-models/preprocessing_metadata.json"
+        "gs://mlops-breast-cancer-models/data/processed/preprocessing_metadata.json"
     )
 
     logger.info("🌤️  Configurazione API: AMBIENTE CLOUD")

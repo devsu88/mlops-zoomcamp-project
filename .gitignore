@@ -83,3 +83,4 @@ tmp/
 # *.parquet
 # *.pkl
 # *.joblib
+CLOUD_PIPELINE_TEST_GUIDE.md

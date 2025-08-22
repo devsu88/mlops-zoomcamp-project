@@ -178,8 +178,11 @@ def load_model():
                 suffix=".joblib", delete=False
             ) as tmp_file:
                 storage_client = storage.Client()
-                bucket = storage_client.bucket(api_config["model_bucket"])
-                blob = bucket.blob("best_model.joblib")
+                # Estrai bucket e blob path dal GCS path
+                gcs_path = model_path.replace("gs://", "")
+                bucket_name, blob_path = gcs_path.split("/", 1)
+                bucket = storage_client.bucket(bucket_name)
+                blob = bucket.blob(blob_path)
                 blob.download_to_filename(tmp_file.name)
                 model = joblib.load(tmp_file.name)
                 logger.info(f"Modello caricato da cloud: {model_path}")
@@ -199,8 +202,11 @@ def load_model():
                 suffix=".joblib", delete=False
             ) as tmp_file:
                 storage_client = storage.Client()
-                bucket = storage_client.bucket(api_config["model_bucket"])
-                blob = bucket.blob("scaler.joblib")
+                # Estrai bucket e blob path dal GCS path
+                gcs_path = scaler_path.replace("gs://", "")
+                bucket_name, blob_path = gcs_path.split("/", 1)
+                bucket = storage_client.bucket(bucket_name)
+                blob = bucket.blob(blob_path)
                 blob.download_to_filename(tmp_file.name)
                 scaler = joblib.load(tmp_file.name)
                 logger.info(f"Scaler caricato da cloud: {scaler_path}")
@@ -217,8 +223,11 @@ def load_model():
             # Per cloud, download temporaneo
             with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
                 storage_client = storage.Client()
-                bucket = storage_client.bucket(api_config["model_bucket"])
-                blob = bucket.blob("preprocessing_metadata.json")
+                # Estrai bucket e blob path dal GCS path
+                gcs_path = preprocessing_metadata_path.replace("gs://", "")
+                bucket_name, blob_path = gcs_path.split("/", 1)
+                bucket = storage_client.bucket(bucket_name)
+                blob = bucket.blob(blob_path)
                 blob.download_to_filename(tmp_file.name)
                 with open(tmp_file.name, "r") as f:
                     preprocessing_metadata = json.load(f)
@@ -245,8 +254,11 @@ def load_model():
             # Per cloud, download temporaneo
             with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
                 storage_client = storage.Client()
-                bucket = storage_client.bucket(api_config["model_bucket"])
-                blob = bucket.blob("model_metadata.json")
+                # Estrai bucket e blob path dal GCS path
+                gcs_path = metadata_path.replace("gs://", "")
+                bucket_name, blob_path = gcs_path.split("/", 1)
+                bucket = storage_client.bucket(bucket_name)
+                blob = bucket.blob(blob_path)
                 blob.download_to_filename(tmp_file.name)
                 with open(tmp_file.name, "r") as f:
                     model_metadata = json.load(f)

@@ -75,11 +75,10 @@ prefect_config = get_prefect_config()
 
 # Prefect storage - calcolato a runtime
 def get_prefect_storage():
+    # Sempre storage locale, anche in cloud
     if is_cloud_environment():
-        from prefect.filesystems import GCS
-
-        logger.info("🌤️  Storage Prefect: GCS Cloud")
-        return GCS(bucket_path=prefect_config["project_name"])  # type: ignore[return-value]
+        logger.info("🌤️  Storage Prefect: Locale nel container cloud")
+        return LocalFileSystem(basepath="/tmp/prefect-storage")  # type: ignore[return-value,assignment]
     else:
         logger.info("🏠  Storage Prefect: File System Locale")
         return LocalFileSystem(basepath=str(Path.cwd()))  # type: ignore[return-value,assignment]

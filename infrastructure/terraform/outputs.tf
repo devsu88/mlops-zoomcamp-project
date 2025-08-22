@@ -26,8 +26,3 @@ output "storage_buckets" {
   description = "Created storage buckets"
   value       = module.storage.bucket_names
 }
-
-output "pipeline_api_url" {
-  description = "MLOps Pipeline API URL (integrata in Prefect)"
-  value       = module.prefect.api_url
-}
