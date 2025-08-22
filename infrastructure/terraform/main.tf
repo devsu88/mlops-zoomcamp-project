@@ -25,7 +25,6 @@ resource "google_project_service" "required_apis" {
   for_each = toset([
     "compute.googleapis.com",
     "storage.googleapis.com",
-    "sqladmin.googleapis.com",
     "run.googleapis.com",
 
     "aiplatform.googleapis.com",
@@ -87,20 +86,7 @@ module "storage" {
   }
 }
 
-# Database module
-module "database" {
-  source = "./modules/database"
 
-  project_id = var.project_id
-  region     = var.region
-
-  mlflow_user = "mlflow_user"
-  mlflow_password = var.database_password
-  prefect_user = "prefect_user"
-  prefect_password = var.prefect_database_password
-
-  depends_on = [google_project_service.required_apis]
-}
 
 # MLflow module - COMMENTATO PER DEPLOY BASE
 module "mlflow" {
@@ -109,14 +95,7 @@ module "mlflow" {
   project_id = var.project_id
   region     = var.region
 
-  database_connection_name = module.database.connection_name
-  database_name           = module.database.mlflow_database_name
-  database_user           = module.database.mlflow_user
-  database_password       = var.database_password
-
   artifact_bucket = module.storage.bucket_names["mlops-breast-cancer-artifacts"]
-
-  depends_on = [module.database]
 }
 
 # Prefect module - COMMENTATO PER DEPLOY BASE
@@ -125,13 +104,6 @@ module "prefect" {
 
   project_id = var.project_id
   region     = var.region
-
-  database_connection_name = module.database.connection_name
-  database_name           = module.database.prefect_database_name
-  database_user           = module.database.prefect_user
-  database_password       = var.prefect_database_password
-
-  depends_on = [module.database]
 }
 
 # Monitoring module - COMMENTATO PER DEPLOY BASE

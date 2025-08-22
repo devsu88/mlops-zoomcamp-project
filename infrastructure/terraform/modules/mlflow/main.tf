@@ -10,10 +10,7 @@ resource "google_cloud_run_service" "mlflow" {
         command = ["mlflow"]
         args    = ["server", "--host", "0.0.0.0", "--port", "5000"]
 
-        env {
-          name  = "MLFLOW_TRACKING_URI"
-          value = "postgresql://${var.database_user}:${var.database_password}@${var.database_connection_name}/${var.database_name}"
-        }
+
 
         env {
           name  = "MLFLOW_ARTIFACT_ROOT"

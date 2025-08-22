@@ -21,15 +21,3 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
-
-variable "database_password" {
-  description = "Database password"
-  type        = string
-  sensitive   = true
-}
-
-variable "prefect_database_password" {
-  description = "Prefect database password"
-  type        = string
-  sensitive   = true
-}

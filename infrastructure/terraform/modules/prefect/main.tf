@@ -12,10 +12,7 @@ resource "google_cloud_run_service" "prefect" {
           value = "http://0.0.0.0:4200"
         }
 
-        env {
-          name  = "PREFECT_SERVER_DATABASE_CONNECTION_URL"
-          value = "postgresql://${var.database_user}:${var.database_password}@${var.database_connection_name}/${var.database_name}"
-        }
+
 
         env {
           name  = "ENVIRONMENT"
