@@ -47,18 +47,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Import per GCS se in cloud
-if is_cloud_environment():
-    try:
-        from google.cloud import storage
-        import tempfile
 
-        GCS_AVAILABLE = True
-    except ImportError:
-        GCS_AVAILABLE = False
+# Import per GCS (valutato a runtime)
+def is_gcs_available() -> bool:
+    if not is_cloud_environment():
+        return False
+    try:
+        from google.cloud import storage  # noqa: F401
+        import tempfile  # noqa: F401
+
+        return True
+    except Exception:
         logger.warning("Google Cloud Storage non disponibile")
-else:
-    GCS_AVAILABLE = False
+        return False
+
 
 # Configurazione
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
@@ -70,17 +72,17 @@ RANDOM_STATE = 42
 # Configurazione dual-mode Prefect
 prefect_config = get_prefect_config()
 
-# Prefect storage - dual-mode
-if is_cloud_environment():
-    # Per cloud, usare storage remoto (GCS)
-    from prefect.filesystems import GCS
 
-    prefect_storage = GCS(bucket_path=prefect_config["project_name"])
-    logger.info(f"🌤️  Storage Prefect: GCS Cloud")
-else:
-    # Per locale, usare file system locale
-    prefect_storage = LocalFileSystem(basepath=str(Path.cwd()))  # type: ignore[assignment]
-    logger.info(f"🏠  Storage Prefect: File System Locale")
+# Prefect storage - calcolato a runtime
+def get_prefect_storage():
+    if is_cloud_environment():
+        from prefect.filesystems import GCS
+
+        logger.info("🌤️  Storage Prefect: GCS Cloud")
+        return GCS(bucket_path=prefect_config["project_name"])  # type: ignore[return-value]
+    else:
+        logger.info("🏠  Storage Prefect: File System Locale")
+        return LocalFileSystem(basepath=str(Path.cwd()))  # type: ignore[return-value,assignment]
 
 
 def save_model_dual_mode(model, file_path: Path, bucket_name: str | None = None):
@@ -95,7 +97,7 @@ def save_model_dual_mode(model, file_path: Path, bucket_name: str | None = None)
     logger.info(f"Modello salvato localmente: {file_path}")
 
     # Salvataggio su GCS se in cloud
-    if is_cloud_environment() and GCS_AVAILABLE and bucket_name:
+    if is_cloud_environment() and is_gcs_available() and bucket_name:
         try:
             from google.cloud import storage
 
@@ -134,7 +136,7 @@ def save_metadata_dual_mode(
     logger.info(f"Metadata salvato localmente: {file_path}")
 
     # Salvataggio su GCS se in cloud
-    if is_cloud_environment() and GCS_AVAILABLE and bucket_name:
+    if is_cloud_environment() and is_gcs_available() and bucket_name:
         try:
             from google.cloud import storage
 
@@ -518,6 +520,8 @@ def upload_auxiliary_files_task():
 
     try:
         # Bucket per modelli
+        from google.cloud import storage
+
         model_bucket = "mlops-breast-cancer-models"
 
         # File da caricare
@@ -786,205 +790,22 @@ def model_validation_pipeline():
         raise
 
 
-@flow(name="complete-mlops-pipeline", description="Pipeline MLOps completa end-to-end")
-def complete_mlops_pipeline():
-    """
-    Pipeline MLOps completa che ricostruisce tutto da zero:
-    1. 🗂️  Carica dataset originale da GCS
-    2. 🔧  Preprocessa i dati
-    3. 🤖  Addestra il modello
-    4. ✅  Valida il modello
-    5. 💾  Salva tutto su GCS
-    6. 📊  Genera report completi
-    """
-    logger = get_run_logger()
-    logger.info("🚀 INIZIO PIPELINE MLOPS COMPLETA END-TO-END")
-    logger.info("=" * 70)
-    logger.info("🎯 OBIETTIVO: Ricostruire tutto da zero partendo dal dataset originale")
-    logger.info("=" * 70)
-
-    try:
-        # FASE 1: SETUP AMBIENTE
-        logger.info("🔧 FASE 1: SETUP AMBIENTE")
-        env_info = setup_environment()
-        logger.info("✅ Environment setup completato")
-
-        # FASE 2: PREPROCESSING DATI
-        logger.info("🔧 FASE 2: PREPROCESSING DATI")
-        logger.info("   📥 Caricamento dataset originale da GCS...")
-        dataset_path = download_dataset_task()
-        logger.info("   ✅ Dataset caricato")
-
-        logger.info("   🔄 Preprocessing dati...")
-        preprocess_info = preprocess_data_task(dataset_path)
-        logger.info("   ✅ Preprocessing completato")
-        logger.info(f"   📊 Dati preprocessati: {preprocess_info}")
-
-        # FASE 3: TRAINING MODELLO
-        logger.info("🤖 FASE 3: TRAINING MODELLO")
-        logger.info("   🎯 Training baseline models...")
-        baseline_results = train_baseline_models_task()
-        logger.info("   ✅ Training baseline completato")
-
-        logger.info("   🚀 Training con MLflow...")
-        mlflow_results = train_mlflow_models_task()
-        logger.info("   ✅ Training MLflow completato")
-
-        logger.info("   ⚙️  Hyperparameter tuning...")
-        tuning_results = hyperparameter_tuning_task()
-        logger.info("   ✅ Hyperparameter tuning completato")
-
-        logger.info("   🔍 Feature importance analysis...")
-        feature_results = feature_importance_analysis_task()
-        logger.info("   ✅ Feature importance analysis completata")
-
-        # FASE 4: SALVATAGGIO BEST MODEL
-        logger.info("💾 FASE 4: SALVATAGGIO BEST MODEL")
-        logger.info("   💾 Salvataggio miglior modello...")
-
-        # Caricare il modello migliore per il salvataggio
-        best_model_path = RESULTS_DIR / "logistic_regression_gridsearch_tuned.joblib"
-        if best_model_path.exists():
-            best_model = joblib.load(best_model_path)
-            logger.info("   ✅ Modello migliore caricato per salvataggio")
-        else:
-            logger.error("   ❌ Modello migliore non trovato!")
-            raise FileNotFoundError(f"Modello non trovato: {best_model_path}")
-
-        # Salvare come best_model.joblib
-        model_info = save_best_model_task(
-            {}, best_model
-        )  # Passiamo un dict vuoto per validation_results
-        logger.info("   ✅ Miglior modello salvato come best_model.joblib")
-
-        # FASE 5: VALIDAZIONE MODELLO
-        logger.info("🔍 FASE 5: VALIDAZIONE MODELLO")
-        logger.info("   🔍 Validazione completa del modello...")
-        validation_task_result = model_validation_task()
-        validation_results = validation_task_result["validation_results"]
-        logger.info("   ✅ Model validation completata")
-
-        # FASE 6: DEPLOYMENT E REPORTING
-        logger.info("📊 FASE 6: DEPLOYMENT E REPORTING")
-        logger.info("   📊 Generazione deployment report...")
-        deployment_report = generate_deployment_report_task(
-            validation_results, model_info
-        )
-        logger.info("   ✅ Deployment report generato")
-
-        logger.info("   📤 Upload file ausiliari su GCS...")
-        auxiliary_upload = upload_auxiliary_files_task()
-        logger.info("   ✅ File ausiliari uploadati")
-
-        # RIEPILOGO FINALE
-        logger.info(f"\n{'='*70}")
-        logger.info("🏆 PIPELINE MLOPS COMPLETA COMPLETATA CON SUCCESSO!")
-        logger.info(f"{'='*70}")
-        logger.info("📊 PERFORMANCE FINALI:")
-        logger.info(
-            f"  🎯 Recall: {validation_results['cv_results']['recall']['mean']:.4f}"
-        )
-        logger.info(
-            f"  🎯 F1-Score: {validation_results['cv_results']['f1']['mean']:.4f}"
-        )
-        logger.info(
-            f"  🎯 Accuracy: {validation_results['cv_results']['accuracy']['mean']:.4f}"
-        )
-        logger.info(
-            f"  🎯 ROC-AUC: {validation_results['cv_results']['roc_auc']['mean']:.4f}"
-        )
-
-        logger.info(f"\n📁 FILE GENERATI E SALVATI SU GCS:")
-        logger.info(f"  🤖 Modello: {model_info['model_path']}")
-        logger.info(f"  📋 Metadata: {model_info['metadata_path']}")
-        logger.info(f"  📊 Report: {RESULTS_DIR}/deployment_report.json")
-        logger.info(
-            f"  📊 Report Cloud: gs://mlops-breast-cancer-monitoring/deployment_report.json"
-        )
-        logger.info(f"  🔧 File ausiliari: {auxiliary_upload}")
-
-        logger.info(f"\n🌤️  STATO CLOUD:")
-        logger.info(f"  📦 Bucket modelli: mlops-breast-cancer-models")
-        logger.info(f"  📊 Bucket dati: mlops-breast-cancer-data")
-        logger.info(f"  🔍 Bucket monitoring: mlops-breast-cancer-monitoring")
-
-        logger.info(f"\n🎯 PRONTO PER DEPLOYMENT E MONITORING!")
-        logger.info(f"{'='*70}")
-
-        return {
-            "pipeline_status": "completed",
-            "environment_info": env_info,
-            "preprocessing_info": preprocess_info,
-            "training_results": {
-                "baseline": baseline_results,
-                "mlflow": mlflow_results,
-                "tuning": tuning_results,
-                "features": feature_results,
-            },
-            "validation_results": validation_results,
-            "model_info": model_info,
-            "deployment_report": deployment_report,
-            "auxiliary_upload": auxiliary_upload,
-        }
-
-    except Exception as e:
-        logger.error(f"❌ ERRORE CRITICO nella pipeline MLOps: {e}")
-        logger.error("🔄 La pipeline si è interrotta. Verificare i log per dettagli.")
-        raise
-
-
 def create_deployments():
     """
-    Crea i deployment per i workflow.
+    Crea un unico deployment manuale (senza schedule) per la pipeline completa.
     """
     logger.info("=== CREAZIONE DEPLOYMENTS ===")
 
-    # Deployment per pipeline completa MLOps (giornaliera)
-    deployment_complete = Deployment.build_from_flow(
-        flow=complete_mlops_pipeline,
-        name="complete-mlops-pipeline-daily",
-        version="1.0.0",
-        work_queue_name="mlops-complete",
-        schedule=CronSchedule(cron="0 2 * * *"),  # Ogni giorno alle 2:00
-        storage=storage,
-    )
-    deployment_complete.apply()
-    logger.info("✅ Deployment pipeline completa MLOps creato")
-
-    # Deployment per pipeline completa (giornaliera)
-    deployment_full = Deployment.build_from_flow(
+    # Deployment unico manuale per la pipeline completa
+    deployment_manual = Deployment.build_from_flow(
         flow=ml_training_pipeline,
-        name="ml-training-pipeline-daily",
+        name="ml-training-pipeline",
         version="1.0.0",
         work_queue_name="ml-training",
-        schedule=CronSchedule(cron="0 3 * * *"),  # Ogni giorno alle 3:00
-        storage=storage,
+        storage=get_prefect_storage(),
     )
-    deployment_full.apply()
-
-    # Deployment per preprocessing (settimanale)
-    deployment_preprocess = Deployment.build_from_flow(
-        flow=data_preprocessing_pipeline,
-        name="data-preprocessing-weekly",
-        version="1.0.0",
-        work_queue_name="data-processing",
-        schedule=CronSchedule(cron="0 4 * * 1"),  # Ogni lunedì alle 4:00
-        storage=storage,
-    )
-    deployment_preprocess.apply()
-
-    # Deployment per validazione (giornaliera)
-    deployment_validation = Deployment.build_from_flow(
-        flow=model_validation_pipeline,
-        name="model-validation-daily",
-        version="1.0.0",
-        work_queue_name="model-validation",
-        schedule=CronSchedule(cron="0 5 * * *"),  # Ogni giorno alle 5:00
-        storage=storage,
-    )
-    deployment_validation.apply()
-
-    logger.info("✅ Deployments creati con successo")
+    deployment_manual.apply()
+    logger.info("✅ Deployment manuale 'ml-training-pipeline' creato")
 
 
 if __name__ == "__main__":
